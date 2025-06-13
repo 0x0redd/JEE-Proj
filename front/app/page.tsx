@@ -86,13 +86,13 @@ export default function LandingPage() {
   };
 
   if (!mounted) {
-    return <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100" />;
+    return null;
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+    <div className="min-h-screen">
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-sm border-b border-slate-200 sticky top-0 z-50">
+      <header className="bg-white/80 dark:bg-slate-950/80 backdrop-blur-sm border-b border-slate-200 dark:border-slate-800 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center space-x-3">
@@ -100,19 +100,19 @@ export default function LandingPage() {
                 <Building2 className="h-8 w-8 text-white" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-slate-900">PremiumEstate</h1>
-                <p className="text-sm text-slate-600">Professional Real Estate Management</p>
+                <h1 className="text-2xl font-bold text-slate-900 dark:text-white">PremiumEstate</h1>
+                <p className="text-sm text-slate-600 dark:text-slate-400">Gestion Immobilière Professionnelle</p>
               </div>
             </div>
             <div className="flex items-center space-x-4">
               <Link href="/auth/signin">
-                <Button variant="outline" className="hidden sm:inline-flex">
-                  Sign In
+                <Button variant="outline" className="hidden sm:inline-flex dark:border-slate-700 dark:text-slate-200">
+                  Connexion
                 </Button>
               </Link>
               <Link href="/auth/signin">
                 <Button className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800">
-                  Admin Dashboard
+                  Tableau de Bord
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </Link>
@@ -125,28 +125,28 @@ export default function LandingPage() {
       <section className="relative py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="text-center">
-            <Badge variant="secondary" className="mb-6 bg-blue-50 text-blue-700 border-blue-200">
-              Professional Real Estate Management Platform
+            <Badge variant="secondary" className="mb-6 bg-blue-50 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800">
+              Plateforme de Gestion Immobilière Professionnelle
             </Badge>
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-slate-900 mb-6">
-              Streamline Your
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-slate-900 dark:text-white mb-6">
+              Optimisez Vos
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-blue-700 block">
-                Real Estate Operations
+                Opérations Immobilières
               </span>
             </h1>
-            <p className="text-xl text-slate-600 mb-10 max-w-3xl mx-auto leading-relaxed">
-              Comprehensive admin platform for managing property offers, client demands, 
-              and real estate transactions with powerful analytics and reporting tools.
+            <p className="text-xl text-slate-600 dark:text-slate-400 mb-10 max-w-3xl mx-auto leading-relaxed">
+              Plateforme administrative complète pour gérer les offres immobilières, les demandes clients, 
+              et les transactions avec des outils d'analyse et de reporting puissants.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link href="/auth/signin">
                 <Button size="lg" className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-lg px-8 py-3">
-                  Access Admin Panel
+                  Accéder au Panel Admin
                   <Key className="ml-2 h-5 w-5" />
                 </Button>
               </Link>
-              <Button size="lg" variant="outline" className="text-lg px-8 py-3">
-                Learn More
+              <Button size="lg" variant="outline" className="text-lg px-8 py-3 dark:border-slate-700 dark:text-slate-200">
+                En Savoir Plus
               </Button>
             </div>
           </div>
@@ -154,26 +154,26 @@ export default function LandingPage() {
       </section>
 
       {/* Latest Offers Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white dark:bg-slate-950">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">
-              Latest Property Offers
+            <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white mb-4">
+              Dernières Offres Immobilières
             </h2>
-            <p className="text-xl text-slate-600 max-w-2xl mx-auto mb-8">
-              Discover our newest premium properties available for purchase
+            <p className="text-xl text-slate-600 dark:text-slate-400 max-w-2xl mx-auto mb-8">
+              Découvrez nos dernières propriétés premium disponibles à l'achat
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link href="/offers">
-                <Button size="lg" variant="outline" className="text-lg px-8 py-3">
+                <Button size="lg" variant="outline" className="text-lg px-8 py-3 dark:border-slate-700 dark:text-slate-200">
                   <Search className="mr-2 h-5 w-5" />
-                  Explore All Offers
+                  Explorer les Offres
                 </Button>
               </Link>
               <Link href="/demands/new">
                 <Button size="lg" className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-lg px-8 py-3">
                   <MessageSquare className="mr-2 h-5 w-5" />
-                  Make a Demand
+                  Faire une Demande
                 </Button>
               </Link>
             </div>
@@ -181,11 +181,11 @@ export default function LandingPage() {
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {latestOffers.map((offer) => (
-              <Card key={offer.id} className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg overflow-hidden">
-                <div className="h-48 bg-gradient-to-br from-blue-50 to-slate-100 relative overflow-hidden">
+              <Card key={offer.id} className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg overflow-hidden dark:bg-slate-900 dark:border-slate-800">
+                <div className="h-48 bg-gradient-to-br from-blue-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 relative overflow-hidden">
                   <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
                   <div className="absolute top-4 left-4">
-                    <Badge className="bg-white/90 text-slate-900 backdrop-blur-sm">
+                    <Badge className="bg-white/90 dark:bg-slate-800/90 text-slate-900 dark:text-white backdrop-blur-sm">
                       {offer.propertyType}
                     </Badge>
                   </div>
@@ -198,14 +198,14 @@ export default function LandingPage() {
                 </div>
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg group-hover:text-blue-600 transition-colors">
+                    <CardTitle className="text-lg group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors dark:text-white">
                       {offer.address}
                     </CardTitle>
-                    <div className="flex items-center space-x-1 text-blue-600">
+                    <div className="flex items-center space-x-1 text-blue-600 dark:text-blue-400">
                       {getPropertyTypeIcon(offer.propertyType)}
                     </div>
                   </div>
-                  <div className="flex items-center space-x-4 text-sm text-slate-600">
+                  <div className="flex items-center space-x-4 text-sm text-slate-600 dark:text-slate-400">
                     <div className="flex items-center space-x-1">
                       <Square className="h-4 w-4" />
                       <span>{offer.surface}m²</span>
@@ -213,7 +213,7 @@ export default function LandingPage() {
                     {offer.bedrooms && (
                       <div className="flex items-center space-x-1">
                         <Home className="h-4 w-4" />
-                        <span>{offer.bedrooms} ch.</span>
+                        <span>{offer.bedrooms} pièces</span>
                       </div>
                     )}
                   </div>
@@ -221,26 +221,26 @@ export default function LandingPage() {
                 <CardContent className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
-                      <Banknote className="h-5 w-5 text-green-600" />
-                      <span className="text-2xl font-bold text-slate-900">
-                        €{offer.price.toLocaleString()}
+                      <Banknote className="h-5 w-5 text-green-600 dark:text-green-400" />
+                      <span className="text-2xl font-bold text-slate-900 dark:text-white">
+                        {offer.price.toLocaleString()} €
                       </span>
                     </div>
                   </div>
 
                   {offer.description && (
-                    <p className="text-sm text-slate-600 line-clamp-2">
+                    <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-2">
                       {offer.description}
                     </p>
                   )}
 
-                  <div className="flex items-center justify-between pt-2 border-t">
-                    <span className="text-xs text-slate-500">
-                      Added {new Date(offer.createdAt).toLocaleDateString()}
+                  <div className="flex items-center justify-between pt-2 border-t dark:border-slate-800">
+                    <span className="text-xs text-slate-500 dark:text-slate-500">
+                      Ajouté le {new Date(offer.createdAt).toLocaleDateString('fr-FR')}
                     </span>
-                    <Button variant="outline" size="sm" className="group-hover:bg-blue-50 group-hover:border-blue-200">
+                    <Button variant="outline" size="sm" className="group-hover:bg-blue-50 dark:group-hover:bg-blue-900/50 group-hover:border-blue-200 dark:group-hover:border-blue-800 dark:border-slate-700 dark:text-slate-200">
                       <Eye className="h-4 w-4 mr-2" />
-                      View Details
+                      Voir les Détails
                     </Button>
                   </div>
                 </CardContent>
@@ -250,8 +250,8 @@ export default function LandingPage() {
 
           <div className="text-center mt-12">
             <Link href="/offers">
-              <Button size="lg" variant="outline" className="text-lg px-12 py-3">
-                View All Properties
+              <Button size="lg" variant="outline" className="text-lg px-12 py-3 dark:border-slate-700 dark:text-slate-200">
+                Voir Toutes les Propriétés
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </Link>
@@ -263,22 +263,22 @@ export default function LandingPage() {
       <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-blue-600 to-blue-700">
         <div className="max-w-7xl mx-auto text-center">
           <h2 className="text-3xl sm:text-4xl font-bold text-white mb-6">
-            Looking for Something Specific?
+            Vous Cherchez Quelque Chose de Spécifique ?
           </h2>
           <p className="text-xl text-blue-100 max-w-2xl mx-auto mb-10">
-            Can't find what you're looking for? Submit a demand and we'll help you find the perfect property that matches your requirements.
+            Vous ne trouvez pas ce que vous cherchez ? Soumettez une demande et nous vous aiderons à trouver la propriété parfaite qui correspond à vos critères.
           </p>
           <div className="flex flex-col sm:flex-row gap-6 justify-center">
             <Link href="/offers">
               <Button size="lg" variant="secondary" className="text-lg px-8 py-4 bg-white text-blue-700 hover:bg-blue-50">
                 <Search className="mr-2 h-5 w-5" />
-                Browse All Offers
+                Parcourir les Offres
               </Button>
             </Link>
             <Link href="/demands/new">
               <Button size="lg" className="text-lg px-8 py-4 bg-green-600 hover:bg-green-700 text-white border-0">
                 <MessageSquare className="mr-2 h-5 w-5" />
-                Submit Your Demand
+                Soumettre une Demande
               </Button>
             </Link>
           </div>
@@ -286,14 +286,14 @@ export default function LandingPage() {
       </section>
 
       {/* Features Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white dark:bg-slate-950">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">
-              Powerful Admin Features
+            <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white mb-4">
+              Fonctionnalités Administratives Puissantes
             </h2>
-            <p className="text-xl text-slate-600 max-w-2xl mx-auto">
-              Everything you need to manage your real estate agency efficiently
+            <p className="text-xl text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
+              Tout ce dont vous avez besoin pour gérer efficacement votre agence immobilière
             </p>
           </div>
           
@@ -303,9 +303,9 @@ export default function LandingPage() {
                 <div className="bg-gradient-to-r from-blue-500 to-blue-600 p-3 rounded-lg w-fit mb-4 group-hover:scale-110 transition-transform">
                   <Building2 className="h-6 w-6 text-white" />
                 </div>
-                <CardTitle className="text-xl">Property Management</CardTitle>
+                <CardTitle className="text-xl">Gestion des Biens</CardTitle>
                 <CardDescription>
-                  Comprehensive property offer management with detailed listings, pricing, and availability tracking.
+                  Gestion complète des offres immobilières avec listes détaillées, prix et suivi de disponibilité.
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -315,9 +315,9 @@ export default function LandingPage() {
                 <div className="bg-gradient-to-r from-green-500 to-green-600 p-3 rounded-lg w-fit mb-4 group-hover:scale-110 transition-transform">
                   <Users className="h-6 w-6 text-white" />
                 </div>
-                <CardTitle className="text-xl">Client Management</CardTitle>
+                <CardTitle className="text-xl">Gestion des Clients</CardTitle>
                 <CardDescription>
-                  Track client demands, preferences, and requirements with advanced filtering and matching capabilities.
+                  Suivi des demandes clients, préférences et exigences avec des capacités de filtrage et de correspondance avancées.
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -327,9 +327,9 @@ export default function LandingPage() {
                 <div className="bg-gradient-to-r from-purple-500 to-purple-600 p-3 rounded-lg w-fit mb-4 group-hover:scale-110 transition-transform">
                   <TrendingUp className="h-6 w-6 text-white" />
                 </div>
-                <CardTitle className="text-xl">Analytics & Reports</CardTitle>
+                <CardTitle className="text-xl">Analyses & Rapports</CardTitle>
                 <CardDescription>
-                  Detailed statistics, market analysis, and performance metrics to drive informed business decisions.
+                  Statistiques détaillées, analyse du marché et métriques de performance pour prendre des décisions éclairées.
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -342,19 +342,19 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
-              Platform Performance
+              Performance de la Plateforme
             </h2>
             <p className="text-xl text-slate-300 max-w-2xl mx-auto">
-              Trusted by real estate professionals for efficient property management
+              Approuvée par les professionnels de l'immobilier pour une gestion efficace
             </p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             {[
-              { number: '250+', label: 'Properties Managed', icon: Building2 },
-              { number: '150+', label: 'Active Clients', icon: Users },
-              { number: '98%', label: 'Client Satisfaction', icon: TrendingUp },
-              { number: '24/7', label: 'System Availability', icon: Key }
+              { number: '250+', label: 'Biens Gérés', icon: Building2 },
+              { number: '150+', label: 'Clients Actifs', icon: Users },
+              { number: '98%', label: 'Satisfaction Client', icon: TrendingUp },
+              { number: '24/7', label: 'Disponibilité Système', icon: Key }
             ].map((stat, index) => (
               <div key={index} className="text-center">
                 <div className="bg-white/10 backdrop-blur-sm p-4 rounded-lg mb-4 w-fit mx-auto">
@@ -369,41 +369,41 @@ export default function LandingPage() {
       </section>
 
       {/* Contact Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-slate-50">
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-slate-50 dark:bg-slate-900">
         <div className="max-w-7xl mx-auto">
-          <div className="bg-white rounded-2xl shadow-xl p-8 lg:p-12">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-8 lg:p-12">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
               <div>
-                <h2 className="text-3xl font-bold text-slate-900 mb-6">
-                  Ready to Get Started?
+                <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-6">
+                  Prêt à Commencer ?
                 </h2>
-                <p className="text-lg text-slate-600 mb-8">
-                  Access your admin dashboard to manage properties, clients, and track your business performance.
+                <p className="text-lg text-slate-600 dark:text-slate-400 mb-8">
+                  Accédez à votre tableau de bord administrateur pour gérer les propriétés, les clients et suivre les performances de votre entreprise.
                 </p>
                 <div className="space-y-4">
-                  <div className="flex items-center space-x-3 text-slate-600">
+                  <div className="flex items-center space-x-3 text-slate-600 dark:text-slate-400">
                     <Phone className="h-5 w-5 text-blue-600" />
-                    <span>+1 (555) 123-4567</span>
+                    <span>+33 1 23 45 67 89</span>
                   </div>
-                  <div className="flex items-center space-x-3 text-slate-600">
+                  <div className="flex items-center space-x-3 text-slate-600 dark:text-slate-400">
                     <Mail className="h-5 w-5 text-blue-600" />
-                    <span>admin@premiumestate.com</span>
+                    <span>admin@premiumestate.fr</span>
                   </div>
-                  <div className="flex items-center space-x-3 text-slate-600">
+                  <div className="flex items-center space-x-3 text-slate-600 dark:text-slate-400">
                     <MapPin className="h-5 w-5 text-blue-600" />
-                    <span>123 Business Ave, Suite 100</span>
+                    <span>123 Avenue des Affaires, 75008 Paris</span>
                   </div>
                 </div>
               </div>
               <div className="text-center lg:text-right">
                 <Link href="/auth/signin">
                   <Button size="lg" className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-lg px-12 py-4">
-                    Access Dashboard
+                    Accéder au Tableau de Bord
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>
                 </Link>
-                <p className="text-sm text-slate-500 mt-4">
-                  Secure admin access required
+                <p className="text-sm text-slate-500 dark:text-slate-400 mt-4">
+                  Accès administrateur sécurisé requis
                 </p>
               </div>
             </div>
@@ -421,10 +421,10 @@ export default function LandingPage() {
             <span className="text-2xl font-bold">PremiumEstate</span>
           </div>
           <p className="text-slate-400 mb-4">
-            Professional Real Estate Management Platform
+            Plateforme de Gestion Immobilière Professionnelle
           </p>
           <p className="text-slate-500 text-sm">
-            © 2025 PremiumEstate. All rights reserved.
+            © 2025 PremiumEstate. Tous droits réservés.
           </p>
         </div>
       </footer>
