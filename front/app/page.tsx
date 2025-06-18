@@ -6,6 +6,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Building2, Key, Users, TrendingUp, ArrowRight, Phone, Mail, MapPin, Home, Banknote, Square, Eye, Search, MessageSquare } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
+import { Meteors } from "@/components/meteors";
 
 interface PropertyOffer {
   id: string;
@@ -92,27 +94,39 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen">
       {/* Header */}
-      <header className="bg-white/80 dark:bg-slate-950/80 backdrop-blur-sm border-b border-slate-200 dark:border-slate-800 sticky top-0 z-50">
+
+      <header className="bg-white/80 dark:bg-[#111111]/40 backdrop-blur-sm border-b border-slate-200 dark:border-slate-800 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
+          <div className="flex justify-between items-center py-1">
             <div className="flex items-center space-x-3">
-              <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-2 rounded-lg">
-                <Building2 className="h-8 w-8 text-white" />
-              </div>
               <div>
-                <h1 className="text-2xl font-bold text-slate-900 dark:text-white">PremiumEstate</h1>
-                <p className="text-sm text-slate-600 dark:text-slate-400">Gestion Immobilière Professionnelle</p>
-              </div>
+                {/* <Building2 className="h-8 w-8 text-white" /> */}
+                <Image src="/sakani.svg" alt="Yakeey Logo" width={100} height={100} />
+                <p className="text-sm text-slate-600 dark:text-slate-400">Gestion Immobilière </p>
+              </div>  
             </div>
             <div className="flex items-center space-x-4">
-              <Link href="/auth/signin">
+            <Link href="/offers">
+                <Button variant="ghost" className="hidden sm:inline-flex dark:text-slate-200 ">
+                  Offres
+                </Button>
+              </Link>
+              <Link href="/demands">
+                <Button variant="ghost" className="hidden sm:inline-flex dark:text-slate-200 "> 
+                  Demandes
+                </Button>
+              </Link>
+            </div>  
+            <div className="flex items-center space-x-4">
+              
+              <Link href="/auth/signup">
                 <Button variant="outline" className="hidden sm:inline-flex dark:border-slate-700 dark:text-slate-200">
-                  Connexion
+                  Inscription
                 </Button>
               </Link>
               <Link href="/auth/signin">
                 <Button className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800">
-                  Tableau de Bord
+                  Tableau de bord
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </Link>
@@ -121,10 +135,13 @@ export default function LandingPage() {
         </div>
       </header>
 
+      
+
       {/* Hero Section */}
-      <section className="relative py-20 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center">
+      <section className="relative py-20 px-4 sm:px-6 lg:px-8 bg-white dark:bg-[#020617] bg-[linear-gradient(to_right,#2461e91f_1px,transparent_1px),linear-gradient(to_bottom,#2461e91f_1px,transparent_1px)] bg-[size:14px_24px]">
+        <Meteors number={120} />
+        <div className="relative max-w-7xl mx-auto">
+          <div className="text-center ">
             <Badge variant="secondary" className="mb-6 bg-blue-50 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800">
               Plateforme de Gestion Immobilière Professionnelle
             </Badge>
@@ -170,7 +187,7 @@ export default function LandingPage() {
                   Explorer les Offres
                 </Button>
               </Link>
-              <Link href="/demands/new">
+              <Link href="/demands">
                 <Button size="lg" className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-lg px-8 py-3">
                   <MessageSquare className="mr-2 h-5 w-5" />
                   Faire une Demande
@@ -275,7 +292,7 @@ export default function LandingPage() {
                 Parcourir les Offres
               </Button>
             </Link>
-            <Link href="/demands/new">
+            <Link href="/demands">
               <Button size="lg" className="text-lg px-8 py-4 bg-green-600 hover:bg-green-700 text-white border-0">
                 <MessageSquare className="mr-2 h-5 w-5" />
                 Soumettre une Demande

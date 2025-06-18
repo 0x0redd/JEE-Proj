@@ -25,6 +25,7 @@ export default function RootLayout({
           defaultTheme="system"
           enableSystem
           disableTransitionOnChange
+          storageKey="theme"
         >
           <BackgroundPattern />
           <ThemeToggle />

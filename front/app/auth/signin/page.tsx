@@ -9,6 +9,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Building2, Eye, EyeOff, Mail, Lock } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 
 export default function SignInPage() {
   const [email, setEmail] = useState('');
@@ -57,25 +58,28 @@ export default function SignInPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center space-x-3 mb-6">
-            <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-2 rounded-lg">
-              <Building2 className="h-8 w-8 text-white" />
+          <div className="flex items-center space-x-3">
+              <div>
+                {/* <Building2 className="h-8 w-8 text-white" /> */}
+                <Image src="/sakani.svg" alt="Yakeey Logo" width={100} height={100} className=''/>
+                <p className="text-sm text-slate-600 dark:text-slate-400 justify-center">Gestion Immobilière </p>
+              </div>
             </div>
-            <span className="text-2xl font-bold text-slate-900">PremiumEstate</span>
           </Link>
-          <h1 className="text-2xl font-bold text-slate-900 mb-2">Welcome Back</h1>
-          <p className="text-slate-600">Sign in to access your admin dashboard</p>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Bienvenue</h1>
+          <p className="text-slate-600 dark:text-slate-400">Connectez-vous pour accéder à votre tableau de bord</p>
         </div>
 
-        <Card className="shadow-xl border-0">
+        <Card className="shadow-xl border-0 dark:bg-slate-800 dark:border-slate-700">
           <CardHeader className="space-y-1">
-            <CardTitle className="text-xl text-center">Admin Sign In</CardTitle>
-            <CardDescription className="text-center">
-              Enter your credentials to access the management system
+            <CardTitle className="text-xl text-center dark:text-white">Connexion Administrateur</CardTitle>
+            <CardDescription className="text-center dark:text-slate-400">
+              Entrez vos identifiants pour accéder au système de gestion
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -87,45 +91,45 @@ export default function SignInPage() {
               )}
 
               <div className="space-y-2">
-                <Label htmlFor="email">Email Address</Label>
+                <Label htmlFor="email" className="dark:text-slate-200">Adresse Email</Label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                  <Mail className="absolute left-3 top-3 h-4 w-4 text-slate-400 dark:text-slate-500" />
                   <Input
                     id="email"
                     type="email"
-                    placeholder="admin@example.com"
+                    placeholder="admin@exemple.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="pl-10"
+                    className="pl-10 dark:bg-slate-700 dark:border-slate-600 dark:text-white dark:placeholder:text-slate-400"
                     required
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password" className="dark:text-slate-200">Mot de passe</Label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                  <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-400 dark:text-slate-500" />
                   <Input
                     id="password"
                     type={showPassword ? 'text' : 'password'}
-                    placeholder="Enter your password"
+                    placeholder="Entrez votre mot de passe"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="pl-10 pr-10"
+                    className="pl-10 pr-10 dark:bg-slate-700 dark:border-slate-600 dark:text-white dark:placeholder:text-slate-400"
                     required
                   />
                   <Button
                     type="button"
                     variant="ghost"
                     size="sm"
-                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent dark:text-slate-400"
                     onClick={() => setShowPassword(!showPassword)}
                   >
                     {showPassword ? (
-                      <EyeOff className="h-4 w-4 text-slate-400" />
+                      <EyeOff className="h-4 w-4" />
                     ) : (
-                      <Eye className="h-4 w-4 text-slate-400" />
+                      <Eye className="h-4 w-4" />
                     )}
                   </Button>
                 </div>
@@ -133,18 +137,18 @@ export default function SignInPage() {
 
               <Button
                 type="submit"
-                className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
+                className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 dark:from-blue-500 dark:to-blue-600 dark:hover:from-blue-600 dark:hover:to-blue-700"
                 disabled={isLoading}
               >
-                {isLoading ? 'Signing In...' : 'Sign In'}
+                {isLoading ? 'Connexion en cours...' : 'Se connecter'}
               </Button>
 
               <div className="text-center">
                 <Link
                   href="/auth/forgot-password"
-                  className="text-sm text-blue-600 hover:text-blue-700 hover:underline"
+                  className="text-sm text-blue-600 hover:text-blue-700 hover:underline dark:text-blue-400 dark:hover:text-blue-300"
                 >
-                  Forgot your password?
+                  Mot de passe oublié ?
                 </Link>
               </div>
             </form>
@@ -152,23 +156,23 @@ export default function SignInPage() {
         </Card>
 
         <div className="text-center mt-6">
-          <p className="text-sm text-slate-600">
-            Need admin access?{' '}
-            <Link href="/auth/signup" className="text-blue-600 hover:text-blue-700 hover:underline">
-              Register here
+          <p className="text-sm text-slate-600 dark:text-slate-400">
+            Besoin d'un accès administrateur ?{' '}
+            <Link href="/auth/signup" className="text-blue-600 hover:text-blue-700 hover:underline dark:text-blue-400 dark:hover:text-blue-300">
+              Inscrivez-vous ici
             </Link>
           </p>
         </div>
 
         {/* Demo credentials info */}
-        <Card className="mt-6 bg-blue-50 border-blue-200">
+        {/* <Card className="mt-6 bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-800/20">
           <CardContent className="pt-6">
-            <div className="text-center text-sm text-blue-800">
-              <p className="font-medium mb-1">Demo Access</p>
-              <p>Use any email and password to sign in</p>
+            <div className="text-center text-sm text-blue-800 dark:text-blue-300">
+              <p className="font-medium mb-1">Accès Démo</p>
+              <p>Utilisez n'importe quel email et mot de passe pour vous connecter</p>
             </div>
           </CardContent>
-        </Card>
+        </Card> */}
       </div>
     </div>
   );

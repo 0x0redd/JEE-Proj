@@ -9,6 +9,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Building2, Eye, EyeOff, Mail, Lock, User, Phone, MapPin } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 
 export default function SignUpPage() {
   const [formData, setFormData] = useState({
@@ -83,25 +84,28 @@ export default function SignUpPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center p-4">
       <div className="w-full max-w-2xl">
         {/* Header */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center space-x-3 mb-6">
-            <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-2 rounded-lg">
-              <Building2 className="h-8 w-8 text-white" />
+           <div className="flex items-center space-x-3">
+              <div>
+                {/* <Building2 className="h-8 w-8 text-white" /> */}
+                <Image src="/sakani.svg" alt="Yakeey Logo" width={100} height={100} />
+                <p className="text-sm text-slate-600 dark:text-slate-400">Gestion Immobilière </p>
+              </div>
             </div>
-            <span className="text-2xl font-bold text-slate-900">PremiumEstate</span>
           </Link>
-          <h1 className="text-2xl font-bold text-slate-900 mb-2">Create Admin Account</h1>
-          <p className="text-slate-600">Register to access the management system</p>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Créer un compte administrateur</h1>
+          <p className="text-slate-600 dark:text-slate-400">Inscrivez-vous pour accéder au système de gestion</p>
         </div>
 
-        <Card className="shadow-xl border-0">
+        <Card className="shadow-xl border-0 dark:bg-slate-800 dark:border-slate-700">
           <CardHeader className="space-y-1">
-            <CardTitle className="text-xl text-center">Admin Registration</CardTitle>
-            <CardDescription className="text-center">
-              Fill in your details to create an admin account
+            <CardTitle className="text-xl text-center dark:text-white">Inscription Administrateur</CardTitle>
+            <CardDescription className="text-center dark:text-slate-400">
+              Remplissez vos informations pour créer un compte administrateur
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -115,33 +119,33 @@ export default function SignUpPage() {
               {/* Name fields */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="firstName" className="required">First Name</Label>
+                  <Label htmlFor="firstName" className="required dark:text-slate-200">Prénom</Label>
                   <div className="relative">
-                    <User className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                    <User className="absolute left-3 top-3 h-4 w-4 text-slate-400 dark:text-slate-500" />
                     <Input
                       id="firstName"
                       name="firstName"
                       type="text"
-                      placeholder="John"
+                      placeholder="Jean"
                       value={formData.firstName}
                       onChange={handleInputChange}
-                      className="pl-10"
+                      className="pl-10 dark:bg-slate-700 dark:border-slate-600 dark:text-white dark:placeholder:text-slate-400"
                       required
                     />
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="lastName" className="required">Last Name</Label>
+                  <Label htmlFor="lastName" className="required dark:text-slate-200">Nom</Label>
                   <div className="relative">
-                    <User className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                    <User className="absolute left-3 top-3 h-4 w-4 text-slate-400 dark:text-slate-500" />
                     <Input
                       id="lastName"
                       name="lastName"
                       type="text"
-                      placeholder="Doe"
+                      placeholder="Dupont"
                       value={formData.lastName}
                       onChange={handleInputChange}
-                      className="pl-10"
+                      className="pl-10 dark:bg-slate-700 dark:border-slate-600 dark:text-white dark:placeholder:text-slate-400"
                       required
                     />
                   </div>
@@ -150,17 +154,17 @@ export default function SignUpPage() {
 
               {/* Email */}
               <div className="space-y-2">
-                <Label htmlFor="email" className="required">Email Address</Label>
+                <Label htmlFor="email" className="required dark:text-slate-200">Adresse Email</Label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                  <Mail className="absolute left-3 top-3 h-4 w-4 text-slate-400 dark:text-slate-500" />
                   <Input
                     id="email"
                     name="email"
                     type="email"
-                    placeholder="admin@example.com"
+                    placeholder="admin@exemple.com"
                     value={formData.email}
                     onChange={handleInputChange}
-                    className="pl-10"
+                    className="pl-10 dark:bg-slate-700 dark:border-slate-600 dark:text-white dark:placeholder:text-slate-400"
                     required
                   />
                 </div>
@@ -169,59 +173,59 @@ export default function SignUpPage() {
               {/* Password fields */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="password" className="required">Password</Label>
+                  <Label htmlFor="password" className="required dark:text-slate-200">Mot de passe</Label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                    <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-400 dark:text-slate-500" />
                     <Input
                       id="password"
                       name="password"
                       type={showPassword ? 'text' : 'password'}
-                      placeholder="Enter password"
+                      placeholder="Entrez votre mot de passe"
                       value={formData.password}
                       onChange={handleInputChange}
-                      className="pl-10 pr-10"
+                      className="pl-10 pr-10 dark:bg-slate-700 dark:border-slate-600 dark:text-white dark:placeholder:text-slate-400"
                       required
                     />
                     <Button
                       type="button"
                       variant="ghost"
                       size="sm"
-                      className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                      className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent dark:text-slate-400"
                       onClick={() => setShowPassword(!showPassword)}
                     >
                       {showPassword ? (
-                        <EyeOff className="h-4 w-4 text-slate-400" />
+                        <EyeOff className="h-4 w-4" />
                       ) : (
-                        <Eye className="h-4 w-4 text-slate-400" />
+                        <Eye className="h-4 w-4" />
                       )}
                     </Button>
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="confirmPassword" className="required">Confirm Password</Label>
+                  <Label htmlFor="confirmPassword" className="required dark:text-slate-200">Confirmer le mot de passe</Label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                    <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-400 dark:text-slate-500" />
                     <Input
                       id="confirmPassword"
                       name="confirmPassword"
                       type={showConfirmPassword ? 'text' : 'password'}
-                      placeholder="Confirm password"
+                      placeholder="Confirmez votre mot de passe"
                       value={formData.confirmPassword}
                       onChange={handleInputChange}
-                      className="pl-10 pr-10"
+                      className="pl-10 pr-10 dark:bg-slate-700 dark:border-slate-600 dark:text-white dark:placeholder:text-slate-400"
                       required
                     />
                     <Button
                       type="button"
                       variant="ghost"
                       size="sm"
-                      className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                      className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent dark:text-slate-400"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                     >
                       {showConfirmPassword ? (
-                        <EyeOff className="h-4 w-4 text-slate-400" />
+                        <EyeOff className="h-4 w-4" />
                       ) : (
-                        <Eye className="h-4 w-4 text-slate-400" />
+                        <Eye className="h-4 w-4" />
                       )}
                     </Button>
                   </div>
@@ -231,22 +235,22 @@ export default function SignUpPage() {
               {/* Phone and Age */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="phone">Phone Number</Label>
+                  <Label htmlFor="phone" className="dark:text-slate-200">Numéro de téléphone</Label>
                   <div className="relative">
-                    <Phone className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                    <Phone className="absolute left-3 top-3 h-4 w-4 text-slate-400 dark:text-slate-500" />
                     <Input
                       id="phone"
                       name="phone"
                       type="tel"
-                      placeholder="+1 (555) 123-4567"
+                      placeholder="+33 6 12 34 56 78"
                       value={formData.phone}
                       onChange={handleInputChange}
-                      className="pl-10"
+                      className="pl-10 dark:bg-slate-700 dark:border-slate-600 dark:text-white dark:placeholder:text-slate-400"
                     />
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="age">Age</Label>
+                  <Label htmlFor="age" className="dark:text-slate-200">Âge</Label>
                   <Input
                     id="age"
                     name="age"
@@ -256,43 +260,44 @@ export default function SignUpPage() {
                     onChange={handleInputChange}
                     min="18"
                     max="100"
+                    className="dark:bg-slate-700 dark:border-slate-600 dark:text-white dark:placeholder:text-slate-400"
                   />
                 </div>
               </div>
 
               {/* Address */}
               <div className="space-y-2">
-                <Label htmlFor="address">Address</Label>
+                <Label htmlFor="address" className="dark:text-slate-200">Adresse</Label>
                 <div className="relative">
-                  <MapPin className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                  <MapPin className="absolute left-3 top-3 h-4 w-4 text-slate-400 dark:text-slate-500" />
                   <Input
                     id="address"
                     name="address"
                     type="text"
-                    placeholder="123 Main Street, City, State"
+                    placeholder="123 Rue de Paris, Ville, Code Postal"
                     value={formData.address}
                     onChange={handleInputChange}
-                    className="pl-10"
+                    className="pl-10 dark:bg-slate-700 dark:border-slate-600 dark:text-white dark:placeholder:text-slate-400"
                   />
                 </div>
               </div>
 
               <Button
                 type="submit"
-                className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
+                className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 dark:from-blue-500 dark:to-blue-600 dark:hover:from-blue-600 dark:hover:to-blue-700"
                 disabled={isLoading}
               >
-                {isLoading ? 'Creating Account...' : 'Create Admin Account'}
+                {isLoading ? 'Création du compte...' : 'Créer un compte administrateur'}
               </Button>
             </form>
           </CardContent>
         </Card>
 
         <div className="text-center mt-6">
-          <p className="text-sm text-slate-600">
-            Already have an account?{' '}
-            <Link href="/auth/signin" className="text-blue-600 hover:text-blue-700 hover:underline">
-              Sign in here
+          <p className="text-sm text-slate-600 dark:text-slate-400">
+            Vous avez déjà un compte ?{' '}
+            <Link href="/auth/signin" className="text-blue-600 hover:text-blue-700 hover:underline dark:text-blue-400 dark:hover:text-blue-300">
+              Connectez-vous ici
             </Link>
           </p>
         </div>
