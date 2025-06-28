@@ -1,13 +1,13 @@
 "use client";
 
 import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
+import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
+import { Label } from '../components/ui/label';
+import { Textarea } from '../components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
+import { Alert, AlertDescription } from '../components/ui/alert';
 import { Save, User, Phone, Home, Banknote, Square, MapPin } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
@@ -46,6 +46,7 @@ export function ClientDemandForm({ onSuccess, redirectTo }: ClientDemandFormProp
   });
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isLoading, setIsLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string>('');
   const router = useRouter();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -66,38 +67,62 @@ export function ClientDemandForm({ onSuccess, redirectTo }: ClientDemandFormProp
   const validateForm = (): boolean => {
     const newErrors: { [key: string]: string } = {};
     if (!formData.clientFirstName.trim()) {
-      newErrors.clientFirstName = 'Client first name is required';
+      newErrors.clientFirstName = 'Le prénom est requis';
     }
     if (!formData.clientLastName.trim()) {
-      newErrors.clientLastName = 'Client last name is required';
+      newErrors.clientLastName = 'Le nom est requis';
     }
     if (!formData.clientPhone.trim()) {
-      newErrors.clientPhone = 'Client phone is required';
+      newErrors.clientPhone = 'Le numéro de téléphone est requis';
     }
     if (!formData.demandType) {
-      newErrors.demandType = 'Demand type is required';
+      newErrors.demandType = 'Le type de demande est requis';
     }
     if (!formData.propertyType) {
-      newErrors.propertyType = 'Property type is required';
+      newErrors.propertyType = 'Le type de bien est requis';
     }
     if (!formData.desiredSurface.trim()) {
-      newErrors.desiredSurface = 'Desired surface area is required';
+      newErrors.desiredSurface = 'La surface désirée est requise';
     } else if (isNaN(Number(formData.desiredSurface)) || Number(formData.desiredSurface) <= 0) {
-      newErrors.desiredSurface = 'Surface must be a positive number';
+      newErrors.desiredSurface = 'La surface doit être un nombre positif';
     }
     if (!formData.budget.trim()) {
-      newErrors.budget = 'Budget is required';
+      newErrors.budget = 'Le budget est requis';
     } else if (isNaN(Number(formData.budget)) || Number(formData.budget) <= 0) {
-      newErrors.budget = 'Budget must be a positive number';
+      newErrors.budget = 'Le budget doit être un nombre positif';
     }
     if (formData.floor && (isNaN(Number(formData.floor)) || Number(formData.floor) < 0)) {
-      newErrors.floor = 'Floor must be a valid number';
+      newErrors.floor = 'L\'étage doit être un nombre valide';
     }
     if (formData.bedrooms && (isNaN(Number(formData.bedrooms)) || Number(formData.bedrooms) < 0)) {
-      newErrors.bedrooms = 'Number of bedrooms must be a valid number';
+      newErrors.bedrooms = 'Le nombre de chambres doit être un nombre valide';
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+
+  const mapDemandTypeToBackend = (frontendType: string): string => {
+    switch (frontendType) {
+      case 'Achat':
+        return 'ACHAT';
+      case 'Loyer':
+        return 'LOCATION';
+      default:
+        return 'ACHAT';
+    }
+  };
+
+  const mapPropertyTypeToBackend = (frontendType: string): string => {
+    switch (frontendType) {
+      case 'Maison':
+        return 'VILLA';
+      case 'Immeuble':
+        return 'APPARTEMENT';
+      case 'Villa':
+        return 'VILLA';
+      default:
+        return 'APPARTEMENT';
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -106,14 +131,80 @@ export function ClientDemandForm({ onSuccess, redirectTo }: ClientDemandFormProp
       return;
     }
     setIsLoading(true);
+    setErrors({});
+    setSuccessMessage('');
+
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const demandeData = {
+        nomClient: formData.clientLastName,
+        prenomClient: formData.clientFirstName,
+        telephoneClient: formData.clientPhone,
+        typeDemande: mapDemandTypeToBackend(formData.demandType),
+        typeBien: mapPropertyTypeToBackend(formData.propertyType),
+        surfaceDemandee: formData.desiredSurface ? Number(formData.desiredSurface) : null,
+        nbChambres: formData.bedrooms ? Number(formData.bedrooms) : null,
+        etageSouhaite: formData.floor ? Number(formData.floor) : null,
+        prixSouhaite: formData.budget ? Number(formData.budget) : null,
+        localisationSouhaitee: formData.preferredLocation || null,
+        notesSupplementaires: formData.notes || null
+      };
+
+      console.log('Sending demande data:', demandeData);
+
+      const response = await fetch('http://localhost:8080/demandes', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(demandeData),
+      });
+
+      console.log('Response status:', response.status);
+      console.log('Response headers:', response.headers);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Error response body:', errorText);
+        throw new Error(`Erreur HTTP: ${response.status} - ${errorText}`);
+      }
+
+      const result = await response.json();
+      console.log('Demande créée avec succès:', result);
+      
+      setSuccessMessage('Votre demande a été soumise avec succès ! Nous vous contacterons bientôt.');
+      
+      // Reset form
+      setFormData({
+        clientFirstName: '',
+        clientLastName: '',
+        clientPhone: '',
+        demandType: '',
+        propertyType: '',
+        desiredSurface: '',
+        bedrooms: '',
+        floor: '',
+        budget: '',
+        preferredLocation: '',
+        notes: ''
+      });
+
       if (onSuccess) onSuccess();
-      if (redirectTo) router.push(redirectTo);
+      
+      // Redirect after a short delay
+      setTimeout(() => {
+        if (redirectTo) {
+          router.push(redirectTo);
+        }
+      }, 2000);
+
     } catch (error) {
-      setErrors({ general: 'An error occurred while saving the demand. Please try again.' });
+      console.error('Erreur lors de la soumission:', error);
+      setErrors({ 
+        general: `Une erreur est survenue lors de la soumission de votre demande: ${error instanceof Error ? error.message : 'Erreur inconnue'}` 
+      });
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   return (
@@ -123,18 +214,27 @@ export function ClientDemandForm({ onSuccess, redirectTo }: ClientDemandFormProp
           <AlertDescription>{errors.general}</AlertDescription>
         </Alert>
       )}
+      
+      {successMessage && (
+        <Alert className="mb-6 border-green-200 bg-green-50 dark:bg-green-900/20 dark:border-green-800">
+          <AlertDescription className="text-green-800 dark:text-green-200">
+            {successMessage}
+          </AlertDescription>
+        </Alert>
+      )}
+
       <Card className="mb-6 bg-white dark:bg-[#18181b] border border-slate-200 dark:border-slate-800">
         <CardHeader className="dark:bg-[#18181b]">
           <CardTitle className="flex items-center space-x-2 text-slate-900 dark:text-white">
             <User className="h-5 w-5 text-slate-600 dark:text-slate-300" />
-            <span>Client Information</span>
+            <span>Informations du client</span>
           </CardTitle>
-          <CardDescription className="text-slate-600 dark:text-slate-400">Enter the client's contact details</CardDescription>
+          <CardDescription className="text-slate-600 dark:text-slate-400">Saisissez les coordonnées du client</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4 dark:bg-[#18181b]">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="clientFirstName" className="required text-slate-900 dark:text-slate-200">First Name</Label>
+              <Label htmlFor="clientFirstName" className="required text-slate-900 dark:text-slate-200">Prénom</Label>
               <Input
                 id="clientFirstName"
                 name="clientFirstName"
@@ -149,7 +249,7 @@ export function ClientDemandForm({ onSuccess, redirectTo }: ClientDemandFormProp
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="clientLastName" className="required text-slate-900 dark:text-slate-200">Last Name</Label>
+              <Label htmlFor="clientLastName" className="required text-slate-900 dark:text-slate-200">Nom</Label>
               <Input
                 id="clientLastName"
                 name="clientLastName"
@@ -165,7 +265,7 @@ export function ClientDemandForm({ onSuccess, redirectTo }: ClientDemandFormProp
             </div>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="clientPhone" className="required text-slate-900 dark:text-slate-200">Phone Number</Label>
+            <Label htmlFor="clientPhone" className="required text-slate-900 dark:text-slate-200">Numéro de téléphone</Label>
             <div className="relative">
               <Phone className="absolute left-3 top-3 h-4 w-4 text-slate-400 dark:text-slate-500" />
               <Input
@@ -188,25 +288,24 @@ export function ClientDemandForm({ onSuccess, redirectTo }: ClientDemandFormProp
         <CardHeader className="dark:bg-[#18181b]">
           <CardTitle className="flex items-center space-x-2 text-slate-900 dark:text-white">
             <Home className="h-5 w-5 text-slate-600 dark:text-slate-300" />
-            <span>Demand Details</span>
+            <span>Détails de la demande</span>
           </CardTitle>
-          <CardDescription className="text-slate-600 dark:text-slate-400">Specify the client's property requirements</CardDescription>
+          <CardDescription className="text-slate-600 dark:text-slate-400">Spécifiez les exigences immobilières du client</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4 dark:bg-[#18181b]">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="demandType" className="required text-slate-900 dark:text-slate-200">Demand Type</Label>
+              <Label htmlFor="demandType" className="required text-slate-900 dark:text-slate-200">Type de demande</Label>
               <Select 
                 value={formData.demandType} 
-                onValueChange={(value) => handleSelectChange('demandType', value)}
+                onValueChange={(value: string) => handleSelectChange('demandType', value)}
               >
                 <SelectTrigger className={errors.demandType ? 'border-red-500' : ''}>
-                  <SelectValue placeholder="Select demand type" />
+                  <SelectValue placeholder="Sélectionnez le type de demande" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Achat">Achat (Purchase)</SelectItem>
-                  <SelectItem value="Loyer">Loyer (Rental)</SelectItem>
-                  <SelectItem value="Hypothèque">Hypothèque (Mortgage)</SelectItem>
+                  <SelectItem value="Achat">Achat</SelectItem>
+                  <SelectItem value="Loyer">Location</SelectItem>
                 </SelectContent>
               </Select>
               {errors.demandType && (
@@ -214,17 +313,17 @@ export function ClientDemandForm({ onSuccess, redirectTo }: ClientDemandFormProp
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="propertyType" className="required text-slate-900 dark:text-slate-200">Property Type</Label>
+              <Label htmlFor="propertyType" className="required text-slate-900 dark:text-slate-200">Type de bien</Label>
               <Select 
                 value={formData.propertyType} 
-                onValueChange={(value) => handleSelectChange('propertyType', value)}
+                onValueChange={(value: string) => handleSelectChange('propertyType', value)}
               >
                 <SelectTrigger className={errors.propertyType ? 'border-red-500' : ''}>
-                  <SelectValue placeholder="Select property type" />
+                  <SelectValue placeholder="Sélectionnez le type de bien" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Maison">Maison</SelectItem>
-                  <SelectItem value="Immeuble">Immeuble</SelectItem>
+                  <SelectItem value="Immeuble">Appartement</SelectItem>
                   <SelectItem value="Villa">Villa</SelectItem>
                 </SelectContent>
               </Select>
@@ -235,7 +334,7 @@ export function ClientDemandForm({ onSuccess, redirectTo }: ClientDemandFormProp
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="desiredSurface" className="required text-slate-900 dark:text-slate-200">Desired Surface (m²)</Label>
+              <Label htmlFor="desiredSurface" className="required text-slate-900 dark:text-slate-200">Surface désirée (m²)</Label>
               <div className="relative">
                 <Square className="absolute left-3 top-3 h-4 w-4 text-slate-400 dark:text-slate-500" />
                 <Input
@@ -253,7 +352,7 @@ export function ClientDemandForm({ onSuccess, redirectTo }: ClientDemandFormProp
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="bedrooms" className="text-slate-900 dark:text-slate-200">Number of Bedrooms (optional)</Label>
+              <Label htmlFor="bedrooms" className="text-slate-900 dark:text-slate-200">Nombre de chambres (optionnel)</Label>
               <Input
                 id="bedrooms"
                 name="bedrooms"
@@ -268,7 +367,7 @@ export function ClientDemandForm({ onSuccess, redirectTo }: ClientDemandFormProp
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="floor" className="text-slate-900 dark:text-slate-200">Preferred Floor (optional)</Label>
+              <Label htmlFor="floor" className="text-slate-900 dark:text-slate-200">Étage souhaité (optionnel)</Label>
               <Input
                 id="floor"
                 name="floor"
@@ -303,7 +402,7 @@ export function ClientDemandForm({ onSuccess, redirectTo }: ClientDemandFormProp
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="preferredLocation" className="text-slate-900 dark:text-slate-200">Preferred Location (optional)</Label>
+              <Label htmlFor="preferredLocation" className="text-slate-900 dark:text-slate-200">Localisation souhaitée (optionnel)</Label>
               <div className="relative">
                 <MapPin className="absolute left-3 top-3 h-4 w-4 text-slate-400 dark:text-slate-500" />
                 <Input
@@ -319,11 +418,11 @@ export function ClientDemandForm({ onSuccess, redirectTo }: ClientDemandFormProp
             </div>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="notes" className="text-slate-900 dark:text-slate-200">Additional Notes (optional)</Label>
+            <Label htmlFor="notes" className="text-slate-900 dark:text-slate-200">Notes supplémentaires (optionnel)</Label>
             <Textarea
               id="notes"
               name="notes"
-              placeholder="Any specific requirements, preferences, or additional information about the client's needs..."
+              placeholder="Toute exigence spécifique, préférence ou information supplémentaire sur les besoins du client..."
               value={formData.notes}
               onChange={handleInputChange}
               rows={4}
@@ -338,11 +437,11 @@ export function ClientDemandForm({ onSuccess, redirectTo }: ClientDemandFormProp
           className="w-full sm:w-auto bg-green-600 hover:bg-green-700"
         >
           {isLoading ? (
-            'Saving...'
+            'Envoi en cours...'
           ) : (
             <>
               <Save className="h-4 w-4 mr-2" />
-              Save Client Demand
+              Soumettre la demande
             </>
           )}
         </Button>

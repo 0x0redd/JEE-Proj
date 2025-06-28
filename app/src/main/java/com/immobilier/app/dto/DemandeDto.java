@@ -1,34 +1,32 @@
 package com.immobilier.app.dto;
 
 import com.immobilier.app.entity.Demande;
+import com.immobilier.app.entity.Demande.TypeDemande;
+import com.immobilier.app.entity.Demande.TypeBien;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Data
 @Builder
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 public class DemandeDto {
     private Long id;
     private String nomClient;
     private String prenomClient;
     private String telephoneClient;
-    private Demande.TypeDemande typeDemande;
-    private Demande.TypeBien typeBien;
-    private Integer surfaceDemandee;
+    private TypeDemande typeDemande;
+    private TypeBien typeBien;
+    private Double surfaceDemandee;
     private Integer nbChambres;
     private Integer etageSouhaite;
-    private BigDecimal prixSouhaite;
+    private Double prixSouhaite;
     private String localisationSouhaitee;
     private String notesSupplementaires;
-    private LocalDateTime dateCreation;
-    private LocalDateTime dateModification;
-    private AdminDto admin;
+    private LocalDateTime createdAt;
 
     public static DemandeDto fromEntity(Demande demande) {
         return DemandeDto.builder()
@@ -44,9 +42,7 @@ public class DemandeDto {
                 .prixSouhaite(demande.getPrixSouhaite())
                 .localisationSouhaitee(demande.getLocalisationSouhaitee())
                 .notesSupplementaires(demande.getNotesSupplementaires())
-                .dateCreation(demande.getDateCreation())
-                .dateModification(demande.getDateModification())
-                .admin(AdminDto.fromEntity(demande.getAdmin()))
+                .createdAt(demande.getCreatedAt())
                 .build();
     }
 } 

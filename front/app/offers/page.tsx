@@ -1,12 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { ArrowRight } from 'lucide-react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
+import { Badge } from '../../components/ui/badge';
+import { Button } from '../../components/ui/button';
+import { Input } from '../../components/ui/input';
+import { ArrowRight, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
 import { 
   Building2, 
   Home,
@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import OfferCard from '../../components/OfferCard';
 
 interface PropertyOffer {
   id: string;
@@ -34,13 +35,34 @@ interface PropertyOffer {
   description?: string;
   createdAt: string;
   status: string;
+  ownerName?: string;
+  ownerPhone?: string;
+  floor?: number;
+  photos?: string[];
+}
+
+interface PaginatedResponse {
+  content: PropertyOffer[];
+  totalElements: number;
+  totalPages: number;
+  size: number;
+  number: number;
+  first: boolean;
+  last: boolean;
+  numberOfElements: number;
 }
 
 const getPropertyTypeIcon = (type: string) => {
   switch (type.toLowerCase()) {
     case 'appartement':
       return <Home className="h-5 w-5" />;
-    case 'maison':
+    case 'villa':
+      return <Building2 className="h-5 w-5" />;
+    case 'bureaux':
+      return <Building2 className="h-5 w-5" />;
+    case 'commerce':
+      return <Building2 className="h-5 w-5" />;
+    case 'terrain':
       return <Building2 className="h-5 w-5" />;
     default:
       return <Building2 className="h-5 w-5" />;
@@ -57,115 +79,168 @@ export default function OffersPage() {
   const [sortBy, setSortBy] = useState<string>('createdAt');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [showFilters, setShowFilters] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalElements, setTotalElements] = useState(0);
+  const [pageSize] = useState(30);
 
-  useEffect(() => {
-    // Load mock data
-    loadMockOffers();
-  }, []);
+  // Fetch offers with pagination and filters
+  const fetchOffers = async (page: number = 0) => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      // Build query parameters
+      const params = new URLSearchParams({
+        page: page.toString(),
+        size: pageSize.toString(),
+        sortBy: sortBy,
+        sortDir: sortOrder
+      });
 
-  const loadMockOffers = () => {
-    const mockOffers: PropertyOffer[] = [
-      {
-        id: '1',
-        propertyType: 'Appartement',
-        address: '123 Rue de Paris',
-        city: 'Paris',
-        district: 'Le Marais',
-        price: 450000,
-        surface: 75,
-        bedrooms: 3,
-        description: 'Bel appartement lumineux avec vue dégagée',
-        createdAt: '2024-03-15',
-        status: 'Disponible'
-      },
-      {
-        id: '2',
-        propertyType: 'Maison',
-        address: '45 Avenue des Champs-Élysées',
-        city: 'Paris',
-        district: '8ème arrondissement',
-        price: 1200000,
-        surface: 200,
-        bedrooms: 5,
-        description: 'Magnifique maison avec jardin',
-        createdAt: '2024-03-14',
-        status: 'Disponible'
-      },
-      // Add more mock offers as needed
-    ];
+      // Add filters
+      if (searchTerm) params.append('searchKeyword', searchTerm);
+      if (filterType !== 'all') params.append('typeBien', filterType);
+      if (filterCity !== 'all') params.append('ville', filterCity);
+      if (priceRange.min) params.append('prixMin', priceRange.min);
+      if (priceRange.max) params.append('prixMax', priceRange.max);
 
-    setOffers(mockOffers);
-    setFilteredOffers(mockOffers);
+      const res = await fetch(`http://localhost:8080/offres/paginated?${params}`);
+      
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+      
+      const data: PaginatedResponse = await res.json();
+      console.log('Fetched paginated data:', data);
+      
+      // Map backend fields to PropertyOffer interface
+      const mappedOffers = data.content.map((item: any) => ({
+        id: item.id?.toString() ?? Math.random().toString(),
+        propertyType: item.typeBien ?? 'APPARTEMENT',
+        address: item.adresseBien ?? '',
+        city: item.localisationVille ?? '',
+        district: item.localisationQuartier ?? '',
+        price: item.prixPropose ?? 0,
+        surface: item.surface ?? 0,
+        bedrooms: item.nbChambresOffre ?? 0,
+        description: item.descriptionBien ?? '',
+        createdAt: item.createdAt ?? new Date().toISOString(),
+        status: item.statutOffre ?? 'DISPONIBLE',
+        ownerName: [item.nomProprietaire, item.prenomProprietaire].filter(Boolean).join(' '),
+        ownerPhone: item.telephoneProprietaire ?? '',
+        floor: item.etage ?? undefined,
+        photos: item.photos ?? [],
+      }));
+      
+      setOffers(mappedOffers);
+      setFilteredOffers(mappedOffers);
+      setCurrentPage(data.number);
+      setTotalPages(data.totalPages);
+      setTotalElements(data.totalElements);
+    } catch (err) {
+      console.error('Failed to fetch offers:', err);
+      setError(err instanceof Error ? err.message : 'Failed to fetch offers');
+    } finally {
+      setLoading(false);
+    }
   };
 
+  // Initial fetch
   useEffect(() => {
-    let result = [...offers];
+    fetchOffers(0);
+  }, []);
 
-    // Apply search
-    if (searchTerm) {
-      result = result.filter(offer =>
-        offer.address.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        offer.city.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        offer.district.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+  // Refetch when filters change
+  useEffect(() => {
+    fetchOffers(0);
+  }, [searchTerm, filterType, filterCity, priceRange, sortBy, sortOrder]);
+
+  // Handle page change
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    fetchOffers(page);
+  };
+
+  // Get unique cities and types from all data (you might want to fetch these separately)
+  const uniqueCities = Array.from(new Set(offers.map(offer => offer.city)));
+  const uniqueTypes = Array.from(new Set(offers.map(offer => offer.propertyType)));
+
+  // Generate page numbers for pagination
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxVisiblePages = 5;
+    let startPage = Math.max(0, currentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(totalPages - 1, startPage + maxVisiblePages - 1);
+    
+    if (endPage - startPage + 1 < maxVisiblePages) {
+      startPage = Math.max(0, endPage - maxVisiblePages + 1);
     }
-
-    // Apply type filter
-    if (filterType !== 'all') {
-      result = result.filter(offer => offer.propertyType === filterType);
+    
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
     }
+    return pages;
+  };
 
-    // Apply city filter
-    if (filterCity !== 'all') {
-      result = result.filter(offer => offer.city === filterCity);
-    }
+  if (loading && offers.length === 0) {
+    return (
+      <div className="min-h-screen bg-white dark:bg-[#111] flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-slate-600 dark:text-slate-400">Chargement des offres...</p>
+        </div>
+      </div>
+    );
+  }
 
-    // Apply price range
-    if (priceRange.min) {
-      result = result.filter(offer => offer.price >= Number(priceRange.min));
-    }
-    if (priceRange.max) {
-      result = result.filter(offer => offer.price <= Number(priceRange.max));
-    }
-
-    // Apply sorting
-    result.sort((a, b) => {
-      let comparison = 0;
-      switch (sortBy) {
-        case 'price':
-          comparison = a.price - b.price;
-          break;
-        case 'surface':
-          comparison = a.surface - b.surface;
-          break;
-        case 'createdAt':
-          comparison = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
-          break;
-        default:
-          comparison = 0;
-      }
-      return sortOrder === 'asc' ? comparison : -comparison;
-    });
-
-    setFilteredOffers(result);
-  }, [offers, searchTerm, filterType, filterCity, priceRange, sortBy, sortOrder]);
+  if (error && offers.length === 0) {
+    return (
+      <div className="min-h-screen bg-white dark:bg-[#111] flex items-center justify-center">
+        <div className="text-center">
+          <Building2 className="h-16 w-16 text-red-400 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-slate-900 dark:text-white mb-2">
+            Erreur lors du chargement
+          </h3>
+          <p className="text-slate-600 dark:text-slate-400 mb-4">{error}</p>
+          <Button onClick={() => fetchOffers(0)}>
+            Réessayer
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#020617] bg-[linear-gradient(to_right,#2461e91f_1px,transparent_1px),linear-gradient(to_bottom,#2461e91f_1px,transparent_1px)] bg-[size:14px_24px]">
+    <div className="min-h-screen bg-white dark:bg-[#111]">
       {/* Header */}
-      <header className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-40">
+      <header className="bg-white/80 dark:bg-[#111111]/40 backdrop-blur-sm border-b border-slate-200 dark:border-slate-800 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center space-x-3">
+          <div className="flex justify-between items-center py-1">
             <div className="flex items-center space-x-3">
               <Link href="/">
-                {/* <Building2 className="h-8 w-8 text-white" /> */}
                 <Image src="/sakani.svg" alt="Yakeey Logo" width={100} height={100} />
                 <p className="text-sm text-slate-600 dark:text-slate-400">Gestion Immobilière </p>
-              </Link>
-            </div>
+              </Link>  
             </div>
             <div className="flex items-center space-x-4">
+            <Link href="/offers">
+                <Button variant="ghost" className="hidden sm:inline-flex dark:text-slate-200 ">
+                  Offres
+                </Button>
+              </Link>
+              <Link href="/demands">
+                <Button variant="ghost" className="hidden sm:inline-flex dark:text-slate-200 "> 
+                  Demandes
+                </Button>
+              </Link>
+            </div>  
+            <div className="flex items-center space-x-4">
+              
               <Link href="/auth/signup">
                 <Button variant="outline" className="hidden sm:inline-flex dark:border-slate-700 dark:text-slate-200">
                   Inscription
@@ -207,7 +282,7 @@ export default function OffersPage() {
               <div className="relative">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400 dark:text-slate-500" />
                 <Input
-                  placeholder="Rechercher par adresse, ville ou quartier..."
+                  placeholder="Rechercher par adresse, ville, quartier, description ou propriétaire..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10 dark:bg-slate-700 dark:border-slate-600 dark:text-white dark:placeholder:text-slate-400"
@@ -227,8 +302,9 @@ export default function OffersPage() {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">Tous les types</SelectItem>
-                        <SelectItem value="Appartement">Appartement</SelectItem>
-                        <SelectItem value="Maison">Maison</SelectItem>
+                        {uniqueTypes.map(type => (
+                          <SelectItem key={type} value={type}>{type}</SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
@@ -243,9 +319,9 @@ export default function OffersPage() {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">Toutes les villes</SelectItem>
-                        <SelectItem value="Paris">Paris</SelectItem>
-                        <SelectItem value="Lyon">Lyon</SelectItem>
-                        <SelectItem value="Marseille">Marseille</SelectItem>
+                        {uniqueCities.map(city => (
+                          <SelectItem key={city} value={city}>{city}</SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
@@ -286,7 +362,7 @@ export default function OffersPage() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="createdAt">Date d'ajout</SelectItem>
-                      <SelectItem value="price">Prix</SelectItem>
+                      <SelectItem value="prixPropose">Prix</SelectItem>
                       <SelectItem value="surface">Surface</SelectItem>
                     </SelectContent>
                   </Select>
@@ -313,79 +389,94 @@ export default function OffersPage() {
         {/* Results Summary */}
         <div className="mb-6">
           <p className="text-sm text-slate-600 dark:text-slate-400">
-            Affichage de {filteredOffers.length} biens sur {offers.length} disponibles
+            Affichage de {offers.length} biens sur {totalElements} disponibles (Page {currentPage + 1} sur {totalPages})
           </p>
         </div>
 
         {/* Offers Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {filteredOffers.map((offer) => (
-            <Card key={offer.id} className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg overflow-hidden dark:bg-slate-900 dark:border-slate-800">
-              <div className="h-48 bg-gradient-to-br from-blue-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
-                <div className="absolute top-4 left-4">
-                  <Badge className="bg-white/90 dark:bg-slate-800/90 text-slate-900 dark:text-white backdrop-blur-sm">
-                    {offer.propertyType}
-                  </Badge>
-                </div>
-                <div className="absolute bottom-4 left-4 text-white">
-                  <div className="flex items-center space-x-2 text-sm font-medium">
-                    <MapPin className="h-4 w-4" />
-                    <span>{offer.city}, {offer.district}</span>
-                  </div>
-                </div>
-              </div>
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors dark:text-white">
-                    {offer.address}
-                  </CardTitle>
-                  <div className="flex items-center space-x-1 text-blue-600 dark:text-blue-400">
-                    {getPropertyTypeIcon(offer.propertyType)}
-                  </div>
-                </div>
-                <div className="flex items-center space-x-4 text-sm text-slate-600 dark:text-slate-400">
-                  <div className="flex items-center space-x-1">
-                    <Square className="h-4 w-4" />
-                    <span>{offer.surface}m²</span>
-                  </div>
-                  {offer.bedrooms && (
-                    <div className="flex items-center space-x-1">
-                      <Home className="h-4 w-4" />
-                      <span>{offer.bedrooms} pièces</span>
-                    </div>
-                  )}
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <Banknote className="h-5 w-5 text-green-600 dark:text-green-400" />
-                    <span className="text-2xl font-bold text-slate-900 dark:text-white">
-                      {offer.price.toLocaleString()} €
-                    </span>
-                  </div>
-                </div>
-
-                {offer.description && (
-                  <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-2">
-                    {offer.description}
-                  </p>
-                )}
-
-                <div className="flex items-center justify-between pt-2 border-t dark:border-slate-800">
-                  <span className="text-xs text-slate-500 dark:text-slate-500">
-                    Ajouté le {new Date(offer.createdAt).toLocaleDateString('fr-FR')}
-                  </span>
-                  <Button variant="outline" size="sm" className="group-hover:bg-blue-50 dark:group-hover:bg-blue-900/50 group-hover:border-blue-200 dark:group-hover:border-blue-800 dark:border-slate-700 dark:text-slate-200">
-                    <Eye className="h-4 w-4 mr-2" />
-                    Voir les Détails
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+          {offers.map((offer) => (
+            <OfferCard key={offer.id} offer={offer} />
           ))}
         </div>
+
+        {/* Loading state for pagination */}
+        {loading && offers.length > 0 && (
+          <div className="flex justify-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          </div>
+        )}
+
+        {/* No Results */}
+        {offers.length === 0 && !loading && (
+          <div className="text-center py-12">
+            <Building2 className="h-16 w-16 text-slate-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-slate-900 dark:text-white mb-2">
+              Aucun bien trouvé
+            </h3>
+            <p className="text-slate-600 dark:text-slate-400">
+              Essayez de modifier vos critères de recherche ou vos filtres.
+            </p>
+          </div>
+        )}
+
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-center space-x-2 mt-8">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handlePageChange(0)}
+              disabled={currentPage === 0 || loading}
+              className="dark:border-slate-700 dark:text-slate-200"
+            >
+              <ChevronsLeft className="h-4 w-4" />
+            </Button>
+            
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 0 || loading}
+              className="dark:border-slate-700 dark:text-slate-200"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+
+            {getPageNumbers().map((page) => (
+              <Button
+                key={page}
+                variant={currentPage === page ? "default" : "outline"}
+                size="sm"
+                onClick={() => handlePageChange(page)}
+                disabled={loading}
+                className="dark:border-slate-700 dark:text-slate-200"
+              >
+                {page + 1}
+              </Button>
+            ))}
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages - 1 || loading}
+              className="dark:border-slate-700 dark:text-slate-200"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+            
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handlePageChange(totalPages - 1)}
+              disabled={currentPage === totalPages - 1 || loading}
+              className="dark:border-slate-700 dark:text-slate-200"
+            >
+              <ChevronsRight className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
       </main>
     </div>
   );

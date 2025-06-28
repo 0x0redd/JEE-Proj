@@ -1,0 +1,228 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# ===== JAVA/SPRING BOOT =====
+# Compiled class files
+*.class
+
+# Log files
+*.log
+
+# BlueJ files
+*.ctxt
+
+# Mobile Tools for Java (J2ME)
+.mtj.tmp/
+
+# Package Files
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# Virtual machine crash logs
+hs_err_pid*
+replay_pid*
+
+# Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# Gradle
+.gradle
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+# IntelliJ IDEA
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+!**/src/main/**/out/
+!**/src/test/**/out/
+
+# Eclipse
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+bin/
+!**/src/main/**/bin/
+!**/src/test/**/bin/
+
+# NetBeans
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+# VS Code
+.vscode/
+
+# ===== NODE.JS/NEXT.JS =====
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Next.js
+.next/
+out/
+build/
+
+# Production
+/build
+
+# Misc
+.DS_Store
+*.pem
+
+# Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Local env files
+.env*.local
+.env
+
+# Vercel
+.vercel
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# ===== DATABASE =====
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# ===== OS GENERATED =====
+# macOS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+
+# ===== EDITORS =====
+# Vim
+*.swp
+*.swo
+*~
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# ===== LOGS =====
+logs
+*.log
+
+# ===== RUNTIME DATA =====
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# ===== COVERAGE DIRECTORY =====
+coverage/
+*.lcov
+
+# ===== NYPM =====
+.npm
+.eslintcache
+
+# ===== OPTIONAL NPM CACHE DIRECTORY =====
+.npm
+
+# ===== OPTIONAL REPL HISTORY =====
+.node_repl_history
+
+# ===== OUTPUT OF 'NPM PACK' =====
+*.tgz
+
+# ===== YARN INTEGRITY =====
+.yarn-integrity
+
+# ===== DOTENV ENVIRONMENT VARIABLES FILE =====
+.env
+.env.test
+.env.production
+
+# ===== PARCEL-BUNDLER CACHE =====
+.cache
+.parcel-cache
+
+# ===== NEXT.JS BUILD OUTPUT =====
+.next
+
+# ===== NUXT.JS BUILD / GENERATE OUTPUT =====
+.nuxt
+dist
+
+# ===== GATSBY FILES =====
+.cache/
+public
+
+# ===== STORYBOOK BUILD OUTPUTS =====
+.out
+.storybook-out
+
+# ===== TEMPORARY FOLDERS =====
+tmp/
+temp/
+
+# ===== UPLOADED FILES =====
+# Ignore uploaded images and files
+front/public/images/offers/*
+!front/public/images/offers/.gitkeep
+
+# ===== APPLICATION SPECIFIC =====
+# Application properties with sensitive data
+application-prod.properties
+application-dev.properties
+
+# ===== BACKUP FILES =====
+*.bak
+*.backup
+*.old

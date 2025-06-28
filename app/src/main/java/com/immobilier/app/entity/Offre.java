@@ -1,67 +1,50 @@
 package com.immobilier.app.entity;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 @Data
+@Entity
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity
 @Table(name = "offres")
 public class Offre {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank
     @Column(nullable = false)
     private String nomProprietaire;
 
-    @NotBlank
     @Column(nullable = false)
     private String prenomProprietaire;
 
-    @NotBlank
     @Column(nullable = false)
     private String telephoneProprietaire;
 
-    @NotBlank
     @Column(nullable = false)
     private String adresseBien;
 
-    @Positive
-    @Column(nullable = false)
-    private Integer surface;
-
+    private Double surface;
     private Integer etage;
 
-    @NotNull
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private TypeBien typeBien;
 
-    @NotNull
-    @Column(nullable = false, precision = 10, scale = 2)
-    private BigDecimal prixPropose;
+    @Column(nullable = false)
+    private Double prixPropose;
 
-    @NotBlank
     @Column(nullable = false)
     private String localisationVille;
 
+    @Column(nullable = false)
     private String localisationQuartier;
 
     @Column(columnDefinition = "TEXT")
@@ -69,38 +52,46 @@ public class Offre {
 
     private Integer nbChambresOffre;
 
-    @CreationTimestamp
-    @Column(nullable = false, updatable = false)
-    private LocalDateTime dateCreation;
-
-    @UpdateTimestamp
-    @Column(nullable = false)
-    private LocalDateTime dateModification;
-
-    @NotNull
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private StatutOffre statutOffre = StatutOffre.DISPONIBLE;
+    private StatutOffre statutOffre;
 
-    @ElementCollection
-    @CollectionTable(name = "offre_photos", joinColumns = @JoinColumn(name = "offre_id"))
-    @Column(name = "photo_url")
-    private List<String> photos = new ArrayList<>();
+    // Temporarily disabled to prevent database errors while migrations are applied
+    // @OneToMany(mappedBy = "offre", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    // private List<OffrePhoto> photos;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "admin_id", nullable = false)
+    @JoinColumn(name = "admin_id")
     private Admin admin;
 
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
+
     public enum TypeBien {
-        MAISON,
-        IMMEUBLE,
-        VILLA
+        APPARTEMENT,
+        VILLA,
+        BUREAUX,
+        COMMERCE,
+        TERRAIN
     }
 
     public enum StatutOffre {
         DISPONIBLE,
-        EN_COURS,
-        VENDU_LOUE,
-        RETIRE
+        RESERVE,
+        VENDU
     }
 } 

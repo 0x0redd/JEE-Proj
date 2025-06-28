@@ -1,18 +1,21 @@
 'use client';
 
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Button } from '../../../components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../components/ui/card';
+import { Input } from '../../../components/ui/input';
+import { Label } from '../../../components/ui/label';
+import { Alert, AlertDescription } from '../../../components/ui/alert';
 import { Building2, Eye, EyeOff, Mail, Lock, User, Phone, MapPin } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import { authService } from '../../../services/auth';
+import type { RegisterData } from '../../../services/auth';
+import { useAuth } from '../../../hooks/useAuth';
 
 export default function SignUpPage() {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<RegisterData>({
     firstName: '',
     lastName: '',
     email: '',
@@ -27,6 +30,7 @@ export default function SignUpPage() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const { login } = useAuth();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -60,24 +64,16 @@ export default function SignUpPage() {
       return;
     }
 
-    // Mock registration - in real app, this would be an API call
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
+      // Call the backend API
+      const admin = await authService.register(formData);
       
-      // Store user data (in real app, this would be handled by backend)
-      localStorage.setItem('isAuthenticated', 'true');
-      localStorage.setItem('adminUser', JSON.stringify({
-        email: formData.email,
-        name: `${formData.firstName} ${formData.lastName}`,
-        role: 'Administrator',
-        phone: formData.phone,
-        address: formData.address,
-        age: formData.age
-      }));
+      // Use the auth hook to handle login after registration
+      login(admin);
       
       router.push('/dashboard');
-    } catch (err) {
-      setError('An error occurred. Please try again.');
+    } catch (err: any) {
+      setError(err.message || 'An error occurred. Please try again.');
     }
 
     setIsLoading(false);

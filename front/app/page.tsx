@@ -1,13 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Button } from '../components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
+import { Badge } from '../components/ui/badge';
 import { Building2, Key, Users, TrendingUp, ArrowRight, Phone, Mail, MapPin, Home, Banknote, Square, Eye, Search, MessageSquare } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Meteors } from "@/components/meteors";
+import { Meteors } from "../components/meteors";
 
 interface PropertyOffer {
   id: string;
@@ -138,7 +138,7 @@ export default function LandingPage() {
       
 
       {/* Hero Section */}
-      <section className="relative py-20 px-4 sm:px-6 lg:px-8 bg-white dark:bg-[#020617] bg-[linear-gradient(to_right,#2461e91f_1px,transparent_1px),linear-gradient(to_bottom,#2461e91f_1px,transparent_1px)] bg-[size:14px_24px]">
+      <section className="relative py-20 px-4 sm:px-6 lg:px-8">
         <Meteors number={120} />
         <div className="relative max-w-7xl mx-auto">
           <div className="text-center ">
@@ -431,17 +431,14 @@ export default function LandingPage() {
       {/* Footer */}
       <footer className="bg-slate-900 text-white py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto text-center">
-          <div className="flex items-center justify-center space-x-3 mb-6">
-            <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-2 rounded-lg">
-              <Building2 className="h-6 w-6 text-white" />
-            </div>
-            <span className="text-2xl font-bold">PremiumEstate</span>
-          </div>
-          <p className="text-slate-400 mb-4">
-            Plateforme de Gestion Immobilière Professionnelle
-          </p>
+        <div className="flex flex-col items-center justify-center space-x-3 mb-6">
+                {/* <Building2 className="h-8 w-8 text-white" /> */}
+                <Image src="/sakani.svg" alt="Yakeey Logo" width={100} height={100} />
+                <p className="text-sm text-slate-600 dark:text-slate-400">Gestion Immobilière </p>
+          </div> 
+          
           <p className="text-slate-500 text-sm">
-            © 2025 PremiumEstate. Tous droits réservés.
+            © 2025 Sakani. Tous droits réservés. 
           </p>
         </div>
       </footer>

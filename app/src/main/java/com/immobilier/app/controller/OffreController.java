@@ -2,80 +2,125 @@ package com.immobilier.app.controller;
 
 import com.immobilier.app.dto.OffreDto;
 import com.immobilier.app.entity.Offre;
+import com.immobilier.app.entity.Offre.TypeBien;
 import com.immobilier.app.service.OffreService;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.math.BigDecimal;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/offres")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:3000")
 public class OffreController {
-
     private final OffreService offreService;
 
-    @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<OffreDto> createOffre(@Valid @RequestBody OffreDto offreDto) {
-        return ResponseEntity.ok(offreService.createOffre(offreDto));
-    }
-
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Page<OffreDto>> getAllOffres(
-            @RequestParam(required = false) Offre.TypeBien typeBien,
-            @RequestParam(required = false) BigDecimal prixMin,
-            @RequestParam(required = false) BigDecimal prixMax,
-            @RequestParam(required = false) Integer surfaceMin,
-            @RequestParam(required = false) Integer surfaceMax,
+            @RequestParam(required = false) TypeBien typeBien,
+            @RequestParam(required = false) Double prixMin,
+            @RequestParam(required = false) Double prixMax,
+            @RequestParam(required = false) Double surfaceMin,
+            @RequestParam(required = false) Double surfaceMax,
             @RequestParam(required = false) String ville,
             @RequestParam(required = false) String quartier,
             @RequestParam(required = false) String searchKeyword,
-            Pageable pageable
-    ) {
-        return ResponseEntity.ok(offreService.getAllOffres(
+            Pageable pageable) {
+        return ResponseEntity.ok(offreService.findAllWithFilters(
                 typeBien, prixMin, prixMax, surfaceMin, surfaceMax,
-                ville, quartier, searchKeyword, pageable
-        ));
+                ville, quartier, searchKeyword, pageable));
+    }
+
+    @GetMapping("/paginated")
+    public ResponseEntity<Page<OffreDto>> getPaginatedOffres(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "30") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir,
+            @RequestParam(required = false) TypeBien typeBien,
+            @RequestParam(required = false) Double prixMin,
+            @RequestParam(required = false) Double prixMax,
+            @RequestParam(required = false) String ville,
+            @RequestParam(required = false) String quartier,
+            @RequestParam(required = false) String searchKeyword) {
+        
+        Sort sort = Sort.by(Sort.Direction.fromString(sortDir), sortBy);
+        Pageable pageable = PageRequest.of(page, size, sort);
+        
+        return ResponseEntity.ok(offreService.findAllWithFilters(
+                typeBien, prixMin, prixMax, null, null,
+                ville, quartier, searchKeyword, pageable));
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<OffreDto> getOffreById(@PathVariable Long id) {
-        return ResponseEntity.ok(offreService.getOffreById(id));
+        return offreService.findById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PostMapping
+    public ResponseEntity<OffreDto> createOffre(@RequestBody OffreDto offreDto) {
+        return ResponseEntity.ok(offreService.create(offreDto));
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<OffreDto> updateOffre(
             @PathVariable Long id,
-            @Valid @RequestBody OffreDto offreDto
-    ) {
-        return ResponseEntity.ok(offreService.updateOffre(id, offreDto));
+            @RequestBody OffreDto offreDto) {
+        return offreService.update(id, offreDto)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteOffre(@PathVariable Long id) {
-        offreService.deleteOffre(id);
-        return ResponseEntity.noContent().build();
+        try {
+            offreService.delete(id);
+            return ResponseEntity.ok().build();
+        } catch (RuntimeException e) {
+            System.err.println("Error in delete endpoint: " + e.getMessage());
+            return ResponseEntity.badRequest().build();
+        } catch (Exception e) {
+            System.err.println("Unexpected error in delete endpoint: " + e.getMessage());
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @PostMapping("/upload-image")
+    public ResponseEntity<Map<String, String>> uploadImage(@RequestParam("image") MultipartFile image) {
+        try {
+            String imageUrl = offreService.uploadImage(image);
+            return ResponseEntity.ok(Map.of("imageUrl", imageUrl));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
     }
 
     @PostMapping("/{id}/photos")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<String>> uploadPhotos(
+    public ResponseEntity<OffreDto> uploadPhotos(
             @PathVariable Long id,
-            @RequestParam("files") List<MultipartFile> files
-    ) {
-        return ResponseEntity.ok(offreService.uploadPhotos(id, files));
+            @RequestParam("photos") List<MultipartFile> photos) {
+        return offreService.addPhotos(id, photos)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
-} 
+
+    @GetMapping("/all")
+    public List<OffreDto> getAllOffersSimple() {
+        return offreService.findAll().stream().map(OffreDto::fromEntity).toList();
+    }
+
+    @GetMapping("/test")
+    public ResponseEntity<String> testEndpoint() {
+        return ResponseEntity.ok("OffreController is working!");
+    }
+}
+

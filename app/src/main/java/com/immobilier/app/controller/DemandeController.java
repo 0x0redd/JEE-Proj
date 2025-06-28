@@ -1,69 +1,65 @@
 package com.immobilier.app.controller;
 
 import com.immobilier.app.dto.DemandeDto;
-import com.immobilier.app.entity.Demande;
+import com.immobilier.app.entity.Demande.TypeDemande;
+import com.immobilier.app.entity.Demande.TypeBien;
 import com.immobilier.app.service.DemandeService;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
-import java.math.BigDecimal;
 
 @RestController
 @RequestMapping("/demandes")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:3000")
 public class DemandeController {
-
     private final DemandeService demandeService;
 
-    @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<DemandeDto> createDemande(@Valid @RequestBody DemandeDto demandeDto) {
-        return ResponseEntity.ok(demandeService.createDemande(demandeDto));
-    }
-
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Page<DemandeDto>> getAllDemandes(
-            @RequestParam(required = false) Demande.TypeDemande typeDemande,
-            @RequestParam(required = false) Demande.TypeBien typeBien,
-            @RequestParam(required = false) BigDecimal prixMin,
-            @RequestParam(required = false) BigDecimal prixMax,
-            @RequestParam(required = false) Integer surfaceMin,
-            @RequestParam(required = false) Integer surfaceMax,
+            @RequestParam(required = false) TypeDemande typeDemande,
+            @RequestParam(required = false) TypeBien typeBien,
+            @RequestParam(required = false) Double prixMin,
+            @RequestParam(required = false) Double prixMax,
+            @RequestParam(required = false) Double surfaceMin,
+            @RequestParam(required = false) Double surfaceMax,
             @RequestParam(required = false) String searchKeyword,
-            Pageable pageable
-    ) {
-        return ResponseEntity.ok(demandeService.getAllDemandes(
+            Pageable pageable) {
+        return ResponseEntity.ok(demandeService.findAllWithFilters(
                 typeDemande, typeBien, prixMin, prixMax,
-                surfaceMin, surfaceMax, searchKeyword, pageable
-        ));
+                surfaceMin, surfaceMax, searchKeyword, pageable));
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<DemandeDto> getDemandeById(@PathVariable Long id) {
-        return ResponseEntity.ok(demandeService.getDemandeById(id));
+        return demandeService.findById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PostMapping
+    public ResponseEntity<DemandeDto> createDemande(@RequestBody DemandeDto demandeDto) {
+        return ResponseEntity.ok(demandeService.create(demandeDto));
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<DemandeDto> updateDemande(
             @PathVariable Long id,
-            @Valid @RequestBody DemandeDto demandeDto
-    ) {
-        return ResponseEntity.ok(demandeService.updateDemande(id, demandeDto));
+            @RequestBody DemandeDto demandeDto) {
+        return demandeService.update(id, demandeDto)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteDemande(@PathVariable Long id) {
-        demandeService.deleteDemande(id);
-        return ResponseEntity.noContent().build();
+        demandeService.delete(id);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/all")
+    public ResponseEntity<java.util.List<DemandeDto>> getAllDemandesSimple() {
+        return ResponseEntity.ok(demandeService.findAll());
     }
 } 
