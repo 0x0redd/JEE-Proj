@@ -4,10 +4,11 @@ import { useState, useEffect } from 'react';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
-import { Building2, Key, Users, TrendingUp, ArrowRight, Phone, Mail, MapPin, Home, Banknote, Square, Eye, Search, MessageSquare } from 'lucide-react';
+import { Building2, Key, Users, TrendingUp, ArrowRight, Phone, Mail, MapPin, Home, Banknote, Square, Eye, Search, MessageSquare, Bot, Send, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Meteors } from "../components/meteors";
+import { chatService } from '../services/chatService';
 
 interface PropertyOffer {
   id: string;
@@ -28,6 +29,13 @@ interface PropertyOffer {
   createdAt: string;
 }
 
+interface ChatMessage {
+  id: string;
+  text: string;
+  sender: 'user' | 'bot';
+  timestamp: Date;
+}
+
 export default function LandingPage() {
   const [mounted, setMounted] = useState(false);
   const [latestOffers, setLatestOffers] = useState<PropertyOffer[]>([]);
@@ -43,6 +51,19 @@ export default function LandingPage() {
     maxPrice: 0
   });
   const [statsLoading, setStatsLoading] = useState(true);
+
+  // Chatbot states
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
+    {
+      id: '1',
+      text: 'Bonjour ! Je suis votre assistant immobilier. Je peux vous aider à trouver des biens immobiliers au Maroc, répondre à vos questions sur les prix, quartiers, et processus d\'achat. Comment puis-je vous aider ?',
+      sender: 'bot',
+      timestamp: new Date()
+    }
+  ]);
+  const [chatInput, setChatInput] = useState('');
+  const [chatLoading, setChatLoading] = useState(false);
+  const [showChat, setShowChat] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -135,6 +156,60 @@ export default function LandingPage() {
       // Keep default values if API fails
     } finally {
       setStatsLoading(false);
+    }
+  };
+
+  const sendChatMessage = async () => {
+    if (!chatInput.trim() || chatLoading) return;
+
+    const userMessage: ChatMessage = {
+      id: Date.now().toString(),
+      text: chatInput.trim(),
+      sender: 'user',
+      timestamp: new Date()
+    };
+
+    setChatMessages(prev => [...prev, userMessage]);
+    setChatInput('');
+    setChatLoading(true);
+
+    try {
+      const data = await chatService.sendMessage(userMessage.text);
+
+      if (data.success) {
+        const botMessage: ChatMessage = {
+          id: (Date.now() + 1).toString(),
+          text: data.response,
+          sender: 'bot',
+          timestamp: new Date()
+        };
+        setChatMessages(prev => [...prev, botMessage]);
+      } else {
+        const errorMessage: ChatMessage = {
+          id: (Date.now() + 1).toString(),
+          text: data.error || 'Désolé, je rencontre des difficultés techniques. Veuillez réessayer plus tard.',
+          sender: 'bot',
+          timestamp: new Date()
+        };
+        setChatMessages(prev => [...prev, errorMessage]);
+      }
+    } catch (error) {
+      const errorMessage: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        text: 'Erreur de connexion. Veuillez vérifier que le service est disponible et réessayer.',
+        sender: 'bot',
+        timestamp: new Date()
+      };
+      setChatMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setChatLoading(false);
+    }
+  };
+
+  const handleChatKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendChatMessage();
     }
   };
 
@@ -278,6 +353,190 @@ export default function LandingPage() {
               <Button size="lg" variant="outline" className="text-lg px-8 py-3 dark:border-slate-700 dark:text-slate-200">
                 En Savoir Plus
               </Button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* AI Assistant Section */}
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <Badge variant="secondary" className="mb-4 bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300">
+              <Bot className="h-4 w-4 mr-2" />
+              Assistant IA Immobilier
+            </Badge>
+            <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white mb-4">
+              Votre Assistant Immobilier Personnel
+            </h2>
+            <p className="text-xl text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
+              Posez vos questions sur l'immobilier au Maroc et obtenez des réponses instantanées de notre assistant IA spécialisé.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+            {/* Chat Interface */}
+            <Card className="border-0 shadow-xl bg-white dark:bg-slate-800">
+              <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-t-lg">
+                <div className="flex items-center space-x-3">
+                  <div className="bg-white/20 p-2 rounded-lg">
+                    <Bot className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-white">Assistant Immobilier</CardTitle>
+                    <p className="text-blue-100 text-sm">Spécialisé dans l'immobilier marocain</p>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="h-96 flex flex-col">
+                  {/* Messages Area */}
+                  <div className="flex-1 p-4 overflow-y-auto max-h-80">
+                    <div className="space-y-4">
+                      {chatMessages.map((message) => (
+                        <div
+                          key={message.id}
+                          className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+                        >
+                          <div
+                            className={`max-w-[80%] rounded-lg p-3 ${
+                              message.sender === 'user'
+                                ? 'bg-blue-600 text-white'
+                                : 'bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-slate-100'
+                            }`}
+                          >
+                            <div className="flex items-start space-x-2">
+                              {message.sender === 'bot' && (
+                                <Bot className="h-4 w-4 mt-0.5 text-blue-600 dark:text-blue-400" />
+                              )}
+                              <div className="flex-1">
+                                <p className="text-sm whitespace-pre-wrap">{message.text}</p>
+                                <p className="text-xs opacity-70 mt-1">
+                                  {message.timestamp.toLocaleTimeString('fr-FR', {
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                  })}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                      {chatLoading && (
+                        <div className="flex justify-start">
+                          <div className="bg-slate-100 dark:bg-slate-700 rounded-lg p-3">
+                            <div className="flex items-center space-x-2">
+                              <Bot className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                              <Loader2 className="h-4 w-4 animate-spin text-blue-600 dark:text-blue-400" />
+                              <span className="text-sm text-slate-600 dark:text-slate-400">
+                                En train d'écrire...
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Input Area */}
+                  <div className="p-4 border-t dark:border-slate-700">
+                    <div className="flex space-x-2">
+                      <input
+                        type="text"
+                        value={chatInput}
+                        onChange={(e) => setChatInput(e.target.value)}
+                        onKeyPress={handleChatKeyPress}
+                        placeholder="Posez votre question sur l'immobilier..."
+                        disabled={chatLoading}
+                        className="flex-1 px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
+                      />
+                      <Button
+                        onClick={sendChatMessage}
+                        disabled={!chatInput.trim() || chatLoading}
+                        size="sm"
+                        className="bg-blue-600 hover:bg-blue-700"
+                      >
+                        <Send className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Features and Examples */}
+            <div className="space-y-6">
+              <div>
+                <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">
+                  Que puis-je faire pour vous ?
+                </h3>
+                <div className="space-y-4">
+                  <div className="flex items-start space-x-3">
+                    <div className="bg-blue-100 dark:bg-blue-900/50 p-2 rounded-lg">
+                      <Search className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-slate-900 dark:text-white">Recherche de biens</h4>
+                      <p className="text-slate-600 dark:text-slate-400 text-sm">
+                        Trouvez des appartements, villas, bureaux selon vos critères
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-start space-x-3">
+                    <div className="bg-green-100 dark:bg-green-900/50 p-2 rounded-lg">
+                      <Banknote className="h-5 w-5 text-green-600 dark:text-green-400" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-slate-900 dark:text-white">Informations sur les prix</h4>
+                      <p className="text-slate-600 dark:text-slate-400 text-sm">
+                        Obtenez des estimations de prix par quartier et type de bien
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-start space-x-3">
+                    <div className="bg-purple-100 dark:bg-purple-900/50 p-2 rounded-lg">
+                      <MapPin className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-slate-900 dark:text-white">Conseils sur les quartiers</h4>
+                      <p className="text-slate-600 dark:text-slate-400 text-sm">
+                        Découvrez les avantages de chaque quartier et ville
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-start space-x-3">
+                    <div className="bg-orange-100 dark:bg-orange-900/50 p-2 rounded-lg">
+                      <Key className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-slate-900 dark:text-white">Processus d'achat</h4>
+                      <p className="text-slate-600 dark:text-slate-400 text-sm">
+                        Guide complet sur les étapes d'achat et documents requis
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-blue-50 dark:bg-blue-900/20 p-6 rounded-lg">
+                <h4 className="font-semibold text-slate-900 dark:text-white mb-3">
+                  Exemples de questions :
+                </h4>
+                <div className="space-y-2 text-sm">
+                  <p className="text-slate-600 dark:text-slate-400">
+                    • "Je cherche un appartement 3 pièces à Casablanca"
+                  </p>
+                  <p className="text-slate-600 dark:text-slate-400">
+                    • "Quels sont les prix moyens dans le quartier Maarif ?"
+                  </p>
+                  <p className="text-slate-600 dark:text-slate-400">
+                    • "Quels documents faut-il pour acheter un bien immobilier ?"
+                  </p>
+                  <p className="text-slate-600 dark:text-slate-400">
+                    • "Peux-tu me parler des quartiers populaires à Rabat ?"
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </div>

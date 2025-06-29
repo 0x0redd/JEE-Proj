@@ -4,6 +4,7 @@ import { Inter } from 'next/font/google';
 import { ThemeProvider } from '../components/theme-provider';
 import { ThemeToggle } from '../components/theme-toggle';
 import { BackgroundPattern } from '../components/background-pattern';
+import { ChatBot } from '../components/ChatBot';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -30,6 +31,7 @@ export default function RootLayout({
           <BackgroundPattern />
           <ThemeToggle />
           {children}
+          <ChatBot />
         </ThemeProvider>
       </body>
     </html>
