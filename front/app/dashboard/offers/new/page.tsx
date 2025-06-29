@@ -11,6 +11,7 @@ import { Alert, AlertDescription } from '../../../../components/ui/alert';
 import { ArrowLeft, Building2, Save, User, Phone, MapPin, Home, Banknote, Square, Loader2, Upload, X, Image } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { ImageService } from '../../../../services/imageService';
 
 interface PropertyOfferForm {
   nomProprietaire: string;
@@ -80,14 +81,11 @@ export default function NewOfferPage() {
     
     if (files.length === 0) return;
 
-    // Validate file types and sizes
+    // Validate file types and sizes using ImageService
     const validFiles = files.filter(file => {
-      if (!file.type.startsWith('image/')) {
-        alert(`${file.name} is not an image file`);
-        return false;
-      }
-      if (file.size > 5 * 1024 * 1024) { // 5MB limit
-        alert(`${file.name} is too large. Maximum size is 5MB`);
+      const validation = ImageService.validateImageFile(file);
+      if (!validation.valid) {
+        alert(`${file.name}: ${validation.error}`);
         return false;
       }
       return true;
@@ -125,19 +123,13 @@ export default function NewOfferPage() {
           continue;
         }
 
-        const formData = new FormData();
-        formData.append('image', image.file);
-
-        const response = await fetch('http://localhost:8080/offres/upload-image', {
-          method: 'POST',
-          body: formData,
-        });
-
-        if (!response.ok) {
-          throw new Error(`Failed to upload image ${image.file.name}: ${response.statusText}`);
+        // Use the new image upload endpoint
+        const result = await ImageService.uploadImage(image.file);
+        
+        if (!result.success || !result.imageUrl) {
+          throw new Error(`Failed to upload image ${image.file.name}: ${result.error || 'Unknown error'}`);
         }
 
-        const result = await response.json();
         uploadedUrls.push(result.imageUrl);
 
         // Update the image status
@@ -575,7 +567,7 @@ export default function NewOfferPage() {
                 <span>Property Images</span>
               </CardTitle>
               <CardDescription className="dark:text-slate-400">
-                Upload photos of the property (optional, max 5MB per image)
+                Upload photos of the property (optional, max 10MB per image)
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -601,7 +593,7 @@ export default function NewOfferPage() {
                         Click to upload images or drag and drop
                       </p>
                       <p className="text-xs text-slate-500 dark:text-slate-500 mt-1">
-                        PNG, JPG, JPEG up to 5MB each
+                        JPEG, PNG, GIF, WebP up to 10MB each
                       </p>
                     </div>
                   </label>
@@ -639,6 +631,9 @@ export default function NewOfferPage() {
                         <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 truncate">
                           {image.file.name}
                         </p>
+                        <p className="text-xs text-slate-400 dark:text-slate-500">
+                          {(image.file.size / 1024 / 1024).toFixed(1)} MB
+                        </p>
                       </div>
                     ))}
                   </div>
@@ -649,7 +644,7 @@ export default function NewOfferPage() {
               {uploadingImages && (
                 <div className="flex items-center space-x-2 text-sm text-slate-600 dark:text-slate-400">
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  <span>Uploading images...</span>
+                  <span>Uploading images to server...</span>
                 </div>
               )}
             </CardContent>

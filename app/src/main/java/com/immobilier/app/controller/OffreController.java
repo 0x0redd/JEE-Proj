@@ -18,6 +18,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/offres")
+@CrossOrigin(origins = "http://localhost:3000")
 @RequiredArgsConstructor
 public class OffreController {
     private final OffreService offreService;
@@ -121,6 +122,25 @@ public class OffreController {
     @GetMapping("/test")
     public ResponseEntity<String> testEndpoint() {
         return ResponseEntity.ok("OffreController is working!");
+    }
+
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<OffreDto> updateOffreStatus(
+            @PathVariable Long id,
+            @RequestBody Map<String, String> statusRequest) {
+        try {
+            String statusString = statusRequest.get("statutOffre");
+            if (statusString == null) {
+                return ResponseEntity.badRequest().build();
+            }
+            
+            Offre.StatutOffre newStatus = Offre.StatutOffre.valueOf(statusString);
+            return offreService.updateStatus(id, newStatus)
+                    .map(ResponseEntity::ok)
+                    .orElse(ResponseEntity.notFound().build());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 }
 

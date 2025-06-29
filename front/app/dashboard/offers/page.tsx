@@ -30,6 +30,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { ImageService } from '../../../services/imageService';
 
 interface PropertyOffer {
   id: string;
@@ -63,6 +64,7 @@ export default function OffersPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [updatingStatusId, setUpdatingStatusId] = useState<string | null>(null);
   
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -96,12 +98,12 @@ export default function OffersPage() {
       const data = await response.json();
       console.log('Fetched offers:', data);
       
-      // Map photo URLs to include the correct base URL
+      // Map photo URLs using ImageService for proper URL handling
       const mappedData = data.map((offer: PropertyOffer) => ({
         ...offer,
         photos: offer.photos ? offer.photos.map((photo: string) => 
-          photo.startsWith('http') ? photo : `http://localhost:3000/offers/${photo}`
-        ) : []
+          ImageService.getImageUrl(photo)
+        ).filter(Boolean) : []
       }));
       
       setOffers(mappedData);
@@ -229,6 +231,76 @@ export default function OffersPage() {
     }
   };
 
+  const handleStatusToggle = async (id: string, currentStatus: string) => {
+    try {
+      setUpdatingStatusId(id);
+      
+      // Determine the new status based on current status
+      let newStatus: string;
+      switch (currentStatus) {
+        case 'DISPONIBLE':
+          newStatus = 'RESERVE';
+          break;
+        case 'RESERVE':
+          newStatus = 'VENDU';
+          break;
+        case 'VENDU':
+          newStatus = 'DISPONIBLE';
+          break;
+        default:
+          newStatus = 'DISPONIBLE';
+      }
+      
+      console.log(`Attempting to update offer ${id} status from ${currentStatus} to ${newStatus}`);
+      
+      const response = await fetch(`http://localhost:8080/offres/${id}/status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ statutOffre: newStatus }),
+      });
+
+      console.log('Status update response status:', response.status);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Status update response error:', errorText);
+        throw new Error(`Failed to update status: ${response.status} - ${errorText}`);
+      }
+
+      const updatedOffer = await response.json();
+      console.log('Status updated successfully:', updatedOffer);
+
+      // Update local state with the response from server
+      setOffers(prevOffers => prevOffers.map(offer => 
+        offer.id === id ? { ...offer, statutOffre: newStatus } : offer
+      ));
+      
+      // Show success message
+      const statusMessages = {
+        'DISPONIBLE': 'Offer is now available',
+        'RESERVE': 'Offer is now reserved',
+        'VENDU': 'Offer is now sold'
+      };
+      
+      // You can add a toast notification here if you have a toast system
+      console.log(`Status updated: ${statusMessages[newStatus as keyof typeof statusMessages]}`);
+      
+    } catch (err) {
+      console.error('Error updating status:', err);
+      
+      // Revert the optimistic update on error
+      setOffers(prevOffers => prevOffers.map(offer => 
+        offer.id === id ? { ...offer, statutOffre: currentStatus } : offer
+      ));
+      
+      alert(`Failed to update status: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    } finally {
+      setUpdatingStatusId(null);
+    }
+  };
+
   const getPropertyTypeIcon = (type: string) => {
     switch (type) {
       case 'VILLA':
@@ -253,6 +325,8 @@ export default function OffersPage() {
       case 'RESERVE':
         return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
       case 'VENDU':
+        return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
+      case 'INDISPONIBLE':
         return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
       default:
         return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
@@ -330,7 +404,7 @@ export default function OffersPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center space-x-4">
-              <Link href="/dashboard">
+              <Link href="/">
                 <Button variant="ghost" size="sm" className="dark:text-slate-200 dark:hover:bg-slate-700">
                   <ArrowLeft className="h-4 w-4 mr-2" />
                   Dashboard
@@ -524,14 +598,29 @@ export default function OffersPage() {
                     src={offer.photos[0]}
                     alt={offer.adresseBien}
                     className="w-full h-full object-cover"
+                    onError={(e) => {
+                      // Fallback to placeholder if image fails to load
+                      const target = e.target as HTMLImageElement;
+                      target.src = '/placeholder-property.svg';
+                    }}
                   />
                 ) : (
                   <div className="w-full h-full bg-gradient-to-br from-blue-50 to-slate-100 dark:from-slate-700 dark:to-slate-800 flex items-center justify-center">
-                    <Building2 className="h-12 w-12 text-slate-400 dark:text-slate-600" />
+                    <img
+                      src="/placeholder-property.svg"
+                      alt="No image available"
+                      className="w-full h-full object-cover"
+                    />
                   </div>
                 )}
                 <div className="absolute top-2 right-2">
-                  <Badge className={getStatusColor(offer.statutOffre)}>
+                  <Badge 
+                    className={`${getStatusColor(offer.statutOffre)} cursor-pointer hover:opacity-80 transition-opacity`}
+                    onClick={() => handleStatusToggle(offer.id, offer.statutOffre)}
+                  >
+                    {updatingStatusId === offer.id ? (
+                      <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                    ) : null}
                     {offer.statutOffre}
                   </Badge>
                 </div>

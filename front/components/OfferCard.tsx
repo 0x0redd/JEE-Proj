@@ -15,6 +15,7 @@ import {
   MorphingDialogImage,
 } from './core/morphing-dialog';
 import { ScrollArea } from './website/scroll-area';
+import { ImageService } from '../services/imageService';
 
 import Image from 'next/image';
 
@@ -62,20 +63,62 @@ const getPropertyTypeColor = (type: string) => {
   }
 };
 
+// Function to get status display for client view
+const getStatusDisplay = (status: string) => {
+  switch (status) {
+    case 'DISPONIBLE':
+      return {
+        color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
+        text: 'Disponible',
+        icon: '🟢'
+      };
+    case 'RESERVE':
+      return {
+        color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
+        text: 'Réservé',
+        icon: '🟡'
+      };
+    case 'VENDU':
+      return {
+        color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
+        text: 'Vendu',
+        icon: '🔵'
+      };
+    case 'INDISPONIBLE':
+      return {
+        color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
+        text: 'Indisponible',
+        icon: '🔴'
+      };
+    default:
+      return {
+        color: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200',
+        text: 'Inconnu',
+        icon: '⚪'
+      };
+  }
+};
+
 interface OfferCardProps {
   offer: PropertyOffer;
 }
 
 export default function OfferCard({ offer }: OfferCardProps) {
-  const defaultImage =
-    '/offers/2638ff38-a04d-4683-9c7c-c598db3e5d51.jpg';
+  // Default placeholder image - you can replace this with your own placeholder
+  const defaultImage = '/placeholder-property.svg';
 
-  // Helper function to get the correct image URL
+  // Helper function to get the correct image URL using ImageService
   const getImageUrl = (photoUrl: string) => {
     if (!photoUrl || photoUrl.trim() === '') return defaultImage;
-    if (photoUrl.startsWith('http')) return photoUrl;
-    return `/offers/${photoUrl}`;
+    
+    // Use ImageService to get the proper URL
+    return ImageService.getImageUrl(photoUrl);
   };
+
+  // Get the main image for display
+  const mainImage = offer.photos && offer.photos.length > 0 
+    ? getImageUrl(offer.photos[0]) 
+    : defaultImage;
 
   const prefersReducedMotion =
     typeof window !== 'undefined' &&
@@ -107,6 +150,12 @@ export default function OfferCard({ offer }: OfferCardProps) {
                 {offer.propertyType}
               </Badge>
             </div>
+            <div className="absolute top-4 right-4">
+              <Badge className={`${getStatusDisplay(offer.status).color} backdrop-blur-sm`}>
+                <span className="mr-1">{getStatusDisplay(offer.status).icon}</span>
+                {getStatusDisplay(offer.status).text}
+              </Badge>
+            </div>
             <div className="absolute bottom-4 left-4 text-white">
               <div className="flex items-center space-x-2 text-sm font-medium">
                 <MapPin className="h-4 w-4" />
@@ -116,9 +165,14 @@ export default function OfferCard({ offer }: OfferCardProps) {
               </div>
             </div>
             <img
-              src={getImageUrl(offer.photos?.[0] || '')}
+              src={mainImage}
               alt={offer.address}
               className="w-full h-full object-cover"
+              onError={(e) => {
+                // Fallback to default image if the main image fails to load
+                const target = e.target as HTMLImageElement;
+                target.src = defaultImage;
+              }}
             />
           </div>
           <CardHeader className="pb-3">
@@ -183,9 +237,13 @@ export default function OfferCard({ offer }: OfferCardProps) {
             <div className="relative p-6">
               <div className="flex justify-center py-6">
                 <img
-                  src={getImageUrl(offer.photos?.[0] || '')}
+                  src={mainImage}
                   alt={offer.address}
                   className="h-auto w-full max-w-[400px] rounded-lg object-cover"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = defaultImage;
+                  }}
                 />
               </div>
               <div className="space-y-6">
@@ -203,6 +261,12 @@ export default function OfferCard({ offer }: OfferCardProps) {
                   <div className="flex items-center space-x-2">
                     <Badge className={getPropertyTypeColor(offer.propertyType)}>
                       {offer.propertyType}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Badge className={getStatusDisplay(offer.status).color}>
+                      <span className="mr-1">{getStatusDisplay(offer.status).icon}</span>
+                      {getStatusDisplay(offer.status).text}
                     </Badge>
                   </div>
                   <div className="flex items-center space-x-2">
@@ -274,9 +338,13 @@ export default function OfferCard({ offer }: OfferCardProps) {
                       {offer.photos.slice(1, 5).map((photo, index) => (
                         <img
                           key={index}
-                          src={getImageUrl(photo || '')}
+                          src={getImageUrl(photo)}
                           alt={`${offer.address} - Photo ${index + 2}`}
                           className="w-full h-24 object-cover rounded-lg"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.src = defaultImage;
+                          }}
                         />
                       ))}
                     </div>

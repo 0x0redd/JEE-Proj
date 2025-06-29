@@ -67,7 +67,7 @@ export default function LandingPage() {
       const mappedData = data.map((offer: PropertyOffer) => ({
         ...offer,
         photos: offer.photos ? offer.photos.map((photo: string) => 
-          photo.startsWith('http') ? photo : `http://localhost:3000/offers/${photo}`
+          photo.startsWith('http') ? photo : `${photo}`
         ) : []
       }));
       
@@ -381,9 +381,11 @@ export default function LandingPage() {
                       </div>
                     </div>
                     {offer.photos && offer.photos.length > 0 ? (
-                      <img
+                      <Image
                         src={offer.photos[0]}
                         alt={offer.adresseBien}
+                        width={400}
+                        height={300}
                         className="w-full h-full object-cover"
                       />
                     ) : (

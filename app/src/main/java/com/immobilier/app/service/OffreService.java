@@ -15,39 +15,16 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class OffreService {
     private final OffreRepository offreRepository;
     private final OffrePhotoRepository offrePhotoRepository;
+    private final FileStorageService fileStorageService;
     
-    // Directory to store uploaded images
-    private static final String UPLOAD_DIR = "../front/public/offers";
-
     public String uploadImage(MultipartFile image) throws IOException {
-        // Create upload directory if it doesn't exist
-        Path uploadPath = Paths.get(UPLOAD_DIR);
-        if (!Files.exists(uploadPath)) {
-            Files.createDirectories(uploadPath);
-        }
-
-        // Generate unique filename
-        String originalFilename = image.getOriginalFilename();
-        String fileExtension = originalFilename != null ? 
-            originalFilename.substring(originalFilename.lastIndexOf(".")) : ".jpg";
-        String filename = UUID.randomUUID().toString() + fileExtension;
-        
-        // Save file
-        Path filePath = uploadPath.resolve(filename);
-        Files.copy(image.getInputStream(), filePath);
-        
-        // Return the URL path for frontend access
-        return "http://localhost:3000/offers/" + filename;
+        return fileStorageService.storeFile(image);
     }
 
     public Page<OffreDto> findAllWithFilters(
@@ -191,5 +168,32 @@ public class OffreService {
 
     public List<Offre> findAll() {
         return offreRepository.findAll();
+    }
+
+    public Optional<OffreDto> updateStatus(Long id, Offre.StatutOffre newStatus) {
+        return offreRepository.findById(id)
+                .map(existingOffre -> {
+                    Offre updatedOffre = Offre.builder()
+                            .id(id)
+                            .admin(existingOffre.getAdmin())
+                            .nomProprietaire(existingOffre.getNomProprietaire())
+                            .prenomProprietaire(existingOffre.getPrenomProprietaire())
+                            .telephoneProprietaire(existingOffre.getTelephoneProprietaire())
+                            .adresseBien(existingOffre.getAdresseBien())
+                            .surface(existingOffre.getSurface())
+                            .etage(existingOffre.getEtage())
+                            .typeBien(existingOffre.getTypeBien())
+                            .prixPropose(existingOffre.getPrixPropose())
+                            .localisationVille(existingOffre.getLocalisationVille())
+                            .localisationQuartier(existingOffre.getLocalisationQuartier())
+                            .descriptionBien(existingOffre.getDescriptionBien())
+                            .nbChambresOffre(existingOffre.getNbChambresOffre())
+                            .statutOffre(newStatus)
+                            .createdAt(existingOffre.getCreatedAt())
+                            .updatedAt(LocalDateTime.now())
+                            .build();
+
+                    return OffreDto.fromEntity(offreRepository.save(updatedOffre));
+                });
     }
 } 

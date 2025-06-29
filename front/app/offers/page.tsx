@@ -22,6 +22,7 @@ import {
 import Image from 'next/image';
 import Link from 'next/link';
 import OfferCard from '../../components/OfferCard';
+import { ImageService } from '../../services/imageService';
 
 interface PropertyOffer {
   id: string;
@@ -69,12 +70,49 @@ const getPropertyTypeIcon = (type: string) => {
   }
 };
 
+// Function to get status color and text for client display
+const getStatusDisplay = (status: string) => {
+  switch (status) {
+    case 'DISPONIBLE':
+      return {
+        color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
+        text: 'Disponible',
+        icon: '🟢'
+      };
+    case 'RESERVE':
+      return {
+        color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
+        text: 'Réservé',
+        icon: '🟡'
+      };
+    case 'VENDU':
+      return {
+        color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
+        text: 'Vendu',
+        icon: '🔵'
+      };
+    case 'INDISPONIBLE':
+      return {
+        color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
+        text: 'Indisponible',
+        icon: '🔴'
+      };
+    default:
+      return {
+        color: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200',
+        text: 'Inconnu',
+        icon: '⚪'
+      };
+  }
+};
+
 export default function OffersPage() {
   const [offers, setOffers] = useState<PropertyOffer[]>([]);
   const [filteredOffers, setFilteredOffers] = useState<PropertyOffer[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<string>('all');
   const [filterCity, setFilterCity] = useState<string>('all');
+  const [filterStatus, setFilterStatus] = useState<string>('all');
   const [priceRange, setPriceRange] = useState({ min: '', max: '' });
   const [sortBy, setSortBy] = useState<string>('createdAt');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
@@ -106,6 +144,7 @@ export default function OffersPage() {
       if (searchTerm) params.append('searchKeyword', searchTerm);
       if (filterType !== 'all') params.append('typeBien', filterType);
       if (filterCity !== 'all') params.append('ville', filterCity);
+      if (filterStatus !== 'all') params.append('statutOffre', filterStatus);
       if (priceRange.min) params.append('prixMin', priceRange.min);
       if (priceRange.max) params.append('prixMax', priceRange.max);
 
@@ -134,9 +173,8 @@ export default function OffersPage() {
         ownerName: [item.nomProprietaire, item.prenomProprietaire].filter(Boolean).join(' '),
         ownerPhone: item.telephoneProprietaire ?? '',
         floor: item.etage ?? undefined,
-        photos: item.photos ? item.photos.map((photo: string) => 
-          photo.startsWith('http') ? photo : `${photo}`
-        ) : [],
+        // Handle photos properly - they should come as URLs from the backend
+        photos: item.photos ? item.photos.filter(Boolean) : [],
       }));
       
       setOffers(mappedOffers);
@@ -160,7 +198,7 @@ export default function OffersPage() {
   // Refetch when filters change
   useEffect(() => {
     fetchOffers(0);
-  }, [searchTerm, filterType, filterCity, priceRange, sortBy, sortOrder]);
+  }, [searchTerm, filterType, filterCity, filterStatus, priceRange, sortBy, sortOrder]);
 
   // Handle page change
   const handlePageChange = (page: number) => {
@@ -324,6 +362,24 @@ export default function OffersPage() {
                         {uniqueCities.map(city => (
                           <SelectItem key={city} value={city}>{city}</SelectItem>
                         ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 block">
+                      Statut
+                    </label>
+                    <Select value={filterStatus} onValueChange={setFilterStatus}>
+                      <SelectTrigger className="dark:bg-slate-700 dark:border-slate-600 dark:text-white">
+                        <SelectValue placeholder="Tous les statuts" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Tous les statuts</SelectItem>
+                        <SelectItem value="DISPONIBLE">Disponible</SelectItem>
+                        <SelectItem value="RESERVE">Réservé</SelectItem>
+                        <SelectItem value="VENDU">Vendu</SelectItem>
+                        <SelectItem value="INDISPONIBLE">Indisponible</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>

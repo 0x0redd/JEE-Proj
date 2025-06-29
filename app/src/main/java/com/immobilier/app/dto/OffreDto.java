@@ -34,18 +34,12 @@ public class OffreDto {
     private LocalDateTime createdAt;
 
     public static OffreDto fromEntity(Offre offre) {
-        // Temporarily disable photo loading to prevent database errors
-        // while the migration is being applied
-        List<String> photoUrls = List.of();
-        
-        // TODO: Re-enable this once the offre_photos table is properly created
-        /*
+        // Load photos from the offre_photos table
         List<String> photoUrls = offre.getPhotos() != null ? 
             offre.getPhotos().stream()
                 .map(photo -> photo.getPhotoUrl())
                 .collect(Collectors.toList()) : 
             List.of();
-        */
             
         return OffreDto.builder()
                 .id(offre.getId())
