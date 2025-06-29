@@ -11,79 +11,182 @@ import { Meteors } from "../components/meteors";
 
 interface PropertyOffer {
   id: string;
-  propertyType: 'Maison' | 'Immeuble' | 'Villa';
-  address: string;
-  city: string;
-  district: string;
-  price: number;
+  nomProprietaire: string;
+  prenomProprietaire: string;
+  telephoneProprietaire: string;
+  adresseBien: string;
   surface: number;
-  bedrooms?: number;
-  description?: string;
+  etage?: number;
+  typeBien: string;
+  prixPropose: number;
+  localisationVille: string;
+  localisationQuartier: string;
+  descriptionBien?: string;
+  nbChambresOffre?: number;
+  statutOffre: string;
+  photos?: string[];
   createdAt: string;
 }
 
 export default function LandingPage() {
   const [mounted, setMounted] = useState(false);
   const [latestOffers, setLatestOffers] = useState<PropertyOffer[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [stats, setStats] = useState({
+    totalOffers: 0,
+    totalDemands: 0,
+    averagePrice: 0,
+    totalSurface: 0,
+    propertyTypes: {},
+    minPrice: 0,
+    maxPrice: 0
+  });
+  const [statsLoading, setStatsLoading] = useState(true);
 
   useEffect(() => {
     setMounted(true);
     loadLatestOffers();
+    loadStats();
   }, []);
 
-  const loadLatestOffers = () => {
-    // Mock latest offers data
-    const mockOffers: PropertyOffer[] = [
-      {
-        id: '1',
-        propertyType: 'Villa',
-        address: '15 Chemin des Oliviers',
-        city: 'Nice',
-        district: 'Cimiez',
-        price: 850000,
-        surface: 220,
-        bedrooms: 5,
-        description: 'Magnifique villa avec vue mer panoramique, piscine et jardin méditerranéen',
-        createdAt: '2025-01-15T10:00:00Z'
-      },
-      {
-        id: '2',
-        propertyType: 'Immeuble',
-        address: '42 Boulevard Haussmann',
-        city: 'Paris',
-        district: '9ème',
-        price: 485000,
-        surface: 95,
-        bedrooms: 3,
-        description: 'Appartement haussmannien rénové avec balcon et vue dégagée',
-        createdAt: '2025-01-14T14:30:00Z'
-      },
-      {
-        id: '3',
-        propertyType: 'Maison',
-        address: '8 Rue des Jardins',
-        city: 'Lyon',
-        district: 'Croix-Rousse',
-        price: 320000,
-        surface: 130,
-        bedrooms: 4,
-        description: 'Maison de caractère avec jardin et garage, proche commodités',
-        createdAt: '2025-01-13T09:15:00Z'
+  const loadLatestOffers = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const response = await fetch('http://localhost:8080/offres/all');
+      if (!response.ok) {
+        throw new Error(`Failed to fetch offers: ${response.status}`);
       }
-    ];
-    setLatestOffers(mockOffers);
+      
+      const data = await response.json();
+      console.log('Fetched offers:', data);
+      
+      // Map photo URLs to include the correct base URL
+      const mappedData = data.map((offer: PropertyOffer) => ({
+        ...offer,
+        photos: offer.photos ? offer.photos.map((photo: string) => 
+          photo.startsWith('http') ? photo : `http://localhost:3000/offers/${photo}`
+        ) : []
+      }));
+      
+      // Get the latest 3 offers (sorted by creation date)
+      const sortedOffers = mappedData.sort((a: PropertyOffer, b: PropertyOffer) => 
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+      
+      setLatestOffers(sortedOffers.slice(0, 3));
+    } catch (err) {
+      console.error('Error loading offers:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load offers');
+      // Fallback to empty array if API fails
+      setLatestOffers([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadStats = async () => {
+    try {
+      setStatsLoading(true);
+      
+      // Fetch offers for statistics
+      const offersResponse = await fetch('http://localhost:8080/offres/all');
+      const offersData = offersResponse.ok ? await offersResponse.json() : [];
+      
+      // Fetch demands for statistics
+      const demandsResponse = await fetch('http://localhost:8080/demandes/all');
+      const demandsData = demandsResponse.ok ? await demandsResponse.json() : [];
+      
+      // Calculate statistics
+      const totalOffers = offersData.length;
+      const totalDemands = demandsData.length;
+      
+      const averagePrice = totalOffers > 0 
+        ? Math.round(offersData.reduce((sum: number, offer: PropertyOffer) => sum + (offer.prixPropose || 0), 0) / totalOffers)
+        : 0;
+      
+      const totalSurface = offersData.reduce((sum: number, offer: PropertyOffer) => sum + (offer.surface || 0), 0);
+      
+      // Calculate property type distribution
+      const propertyTypes = offersData.reduce((acc: any, offer: PropertyOffer) => {
+        acc[offer.typeBien] = (acc[offer.typeBien] || 0) + 1;
+        return acc;
+      }, {});
+      
+      // Calculate price ranges
+      const prices = offersData.map((offer: PropertyOffer) => offer.prixPropose || 0).filter((price: number) => price > 0);
+      const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
+      const maxPrice = prices.length > 0 ? Math.max(...prices) : 0;
+      
+      setStats({
+        totalOffers,
+        totalDemands,
+        averagePrice,
+        totalSurface,
+        propertyTypes,
+        minPrice,
+        maxPrice
+      });
+      
+    } catch (err) {
+      console.error('Error loading stats:', err);
+      // Keep default values if API fails
+    } finally {
+      setStatsLoading(false);
+    }
+  };
+
+  const testBackendConnection = async () => {
+    try {
+      const response = await fetch('http://localhost:8080/offres/all');
+      const text = await response.text();
+      console.log('Backend test response:', text);
+      alert(`Backend connection test: ${response.ok ? 'Success' : 'Failed'} - ${response.status}`);
+      
+      // If successful, refresh the data
+      if (response.ok) {
+        loadLatestOffers();
+        loadStats();
+      }
+    } catch (err) {
+      console.error('Backend connection test failed:', err);
+      alert('Backend connection test failed: ' + err);
+    }
   };
 
   const getPropertyTypeIcon = (type: string) => {
     switch (type) {
-      case 'Villa':
+      case 'VILLA':
         return <Home className="h-4 w-4" />;
-      case 'Maison':
+      case 'APPARTEMENT':
         return <Building2 className="h-4 w-4" />;
-      case 'Immeuble':
+      case 'BUREAUX':
+        return <Building2 className="h-4 w-4" />;
+      case 'COMMERCE':
+        return <Building2 className="h-4 w-4" />;
+      case 'TERRAIN':
         return <Building2 className="h-4 w-4" />;
       default:
         return <Building2 className="h-4 w-4" />;
+    }
+  };
+
+  const formatPropertyType = (type: string) => {
+    switch (type) {
+      case 'APPARTEMENT':
+        return 'Appartement';
+      case 'VILLA':
+        return 'Villa';
+      case 'BUREAUX':
+        return 'Bureaux';
+      case 'COMMERCE':
+        return 'Commerce';
+      case 'TERRAIN':
+        return 'Terrain';
+      default:
+        return type;
     }
   };
 
@@ -116,6 +219,13 @@ export default function LandingPage() {
                   Demandes
                 </Button>
               </Link>
+              <Button 
+                variant="ghost" 
+                onClick={testBackendConnection}
+                className="hidden sm:inline-flex dark:text-slate-200 text-xs"
+              >
+                Test API
+              </Button>
             </div>  
             <div className="flex items-center space-x-4">
               
@@ -139,9 +249,12 @@ export default function LandingPage() {
 
       {/* Hero Section */}
       <section className="relative py-20 px-4 sm:px-6 lg:px-8">
-        <Meteors number={120} />
+        <div className="absolute inset-0 overflow-hidden">
+          <Meteors number={120} />
+        </div>
         <div className="relative max-w-7xl mx-auto">
-          <div className="text-center ">
+          
+          <div className="text-center relative z-10">
             <Badge variant="secondary" className="mb-6 bg-blue-50 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800">
               Plateforme de Gestion Immobilière Professionnelle
             </Badge>
@@ -170,114 +283,8 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Latest Offers Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white dark:bg-slate-950">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white mb-4">
-              Dernières Offres Immobilières
-            </h2>
-            <p className="text-xl text-slate-600 dark:text-slate-400 max-w-2xl mx-auto mb-8">
-              Découvrez nos dernières propriétés premium disponibles à l'achat
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/offers">
-                <Button size="lg" variant="outline" className="text-lg px-8 py-3 dark:border-slate-700 dark:text-slate-200">
-                  <Search className="mr-2 h-5 w-5" />
-                  Explorer les Offres
-                </Button>
-              </Link>
-              <Link href="/demands">
-                <Button size="lg" className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-lg px-8 py-3">
-                  <MessageSquare className="mr-2 h-5 w-5" />
-                  Faire une Demande
-                </Button>
-              </Link>
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {latestOffers.map((offer) => (
-              <Card key={offer.id} className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg overflow-hidden dark:bg-slate-900 dark:border-slate-800">
-                <div className="h-48 bg-gradient-to-br from-blue-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 relative overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
-                  <div className="absolute top-4 left-4">
-                    <Badge className="bg-white/90 dark:bg-slate-800/90 text-slate-900 dark:text-white backdrop-blur-sm">
-                      {offer.propertyType}
-                    </Badge>
-                  </div>
-                  <div className="absolute bottom-4 left-4 text-white">
-                    <div className="flex items-center space-x-2 text-sm font-medium">
-                      <MapPin className="h-4 w-4" />
-                      <span>{offer.city}, {offer.district}</span>
-                    </div>
-                  </div>
-                </div>
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors dark:text-white">
-                      {offer.address}
-                    </CardTitle>
-                    <div className="flex items-center space-x-1 text-blue-600 dark:text-blue-400">
-                      {getPropertyTypeIcon(offer.propertyType)}
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-4 text-sm text-slate-600 dark:text-slate-400">
-                    <div className="flex items-center space-x-1">
-                      <Square className="h-4 w-4" />
-                      <span>{offer.surface}m²</span>
-                    </div>
-                    {offer.bedrooms && (
-                      <div className="flex items-center space-x-1">
-                        <Home className="h-4 w-4" />
-                        <span>{offer.bedrooms} pièces</span>
-                      </div>
-                    )}
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <Banknote className="h-5 w-5 text-green-600 dark:text-green-400" />
-                      <span className="text-2xl font-bold text-slate-900 dark:text-white">
-                        {offer.price.toLocaleString()} €
-                      </span>
-                    </div>
-                  </div>
-
-                  {offer.description && (
-                    <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-2">
-                      {offer.description}
-                    </p>
-                  )}
-
-                  <div className="flex items-center justify-between pt-2 border-t dark:border-slate-800">
-                    <span className="text-xs text-slate-500 dark:text-slate-500">
-                      Ajouté le {new Date(offer.createdAt).toLocaleDateString('fr-FR')}
-                    </span>
-                    <Button variant="outline" size="sm" className="group-hover:bg-blue-50 dark:group-hover:bg-blue-900/50 group-hover:border-blue-200 dark:group-hover:border-blue-800 dark:border-slate-700 dark:text-slate-200">
-                      <Eye className="h-4 w-4 mr-2" />
-                      Voir les Détails
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
-          <div className="text-center mt-12">
-            <Link href="/offers">
-              <Button size="lg" variant="outline" className="text-lg px-12 py-3 dark:border-slate-700 dark:text-slate-200">
-                Voir Toutes les Propriétés
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </section>
-
       {/* Call to Action Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-blue-600 to-blue-700">
+      <section className="pt-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-blue-600 to-blue-700">
         <div className="max-w-7xl mx-auto text-center">
           <h2 className="text-3xl sm:text-4xl font-bold text-white mb-6">
             Vous Cherchez Quelque Chose de Spécifique ?
@@ -302,6 +309,152 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Latest Offers Section */}
+      <section className="pt-10 pb-10 px-5 sm:px-6 lg:px-8 bg-gradient-to-r from-blue-600 to-blue-700 ">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center text-white  mb-16">
+            <h2 className="text-3xl sm:text-4xl font-bold  text-white mb-4">
+              Dernières Offres Immobilières
+            </h2>
+            <p className="text-xl text-slate-600 text-white max-w-2xl mx-auto mb-8">
+              Découvrez nos dernières propriétés premium disponibles à l'achat
+            </p>
+            
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {loading ? (
+              // Loading state
+              Array.from({ length: 3 }).map((_, index) => (
+                <Card key={index} className="border-0 shadow-lg overflow-hidden dark:bg-slate-900 dark:border-slate-800">
+                  <div className="h-48 bg-gradient-to-br from-blue-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 animate-pulse" />
+                  <CardHeader className="pb-3">
+                    <div className="h-6 bg-slate-200 dark:bg-slate-700 rounded animate-pulse mb-2" />
+                    <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded animate-pulse" />
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="h-8 bg-slate-200 dark:bg-slate-700 rounded animate-pulse" />
+                    <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded animate-pulse" />
+                  </CardContent>
+                </Card>
+              ))
+            ) : error ? (
+              // Error state
+              <div className="col-span-full text-center py-12">
+                <Building2 className="mx-auto h-12 w-12 text-slate-400 dark:text-slate-600 mb-4" />
+                <h3 className="text-lg font-medium text-slate-900 dark:text-white mb-2">
+                  Erreur de chargement
+                </h3>
+                <p className="text-slate-600 dark:text-slate-400 mb-6">
+                  Impossible de charger les dernières offres
+                </p>
+                <Button onClick={loadLatestOffers} variant="outline">
+                  Réessayer
+                </Button>
+              </div>
+            ) : latestOffers.length === 0 ? (
+              // Empty state
+              <div className="col-span-full text-center py-12">
+                <Building2 className="mx-auto h-12 w-12 text-slate-400 dark:text-slate-600 mb-4" />
+                <h3 className="text-lg font-medium text-slate-900 dark:text-white mb-2">
+                  Aucune offre disponible
+                </h3>
+                <p className="text-slate-600 dark:text-slate-400 mb-6">
+                  Aucune offre immobilière n'est actuellement disponible
+                </p>
+              </div>
+            ) : (
+              // Actual offers
+              latestOffers.map((offer) => (
+                <Card key={offer.id} className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg overflow-hidden dark:bg-slate-900 dark:border-slate-800">
+                  <div className="h-48 bg-gradient-to-br from-blue-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 relative overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+                    <div className="absolute top-4 left-4">
+                      <Badge className="bg-white/90 dark:bg-slate-800/90 text-slate-900 dark:text-white backdrop-blur-sm">
+                        {formatPropertyType(offer.typeBien)}
+                      </Badge>
+                    </div>
+                    <div className="absolute bottom-4 left-4 text-white">
+                      <div className="flex items-center space-x-2 text-sm font-medium">
+                        <MapPin className="h-4 w-4" />
+                        <span>{offer.localisationVille}, {offer.localisationQuartier}</span>
+                      </div>
+                    </div>
+                    {offer.photos && offer.photos.length > 0 ? (
+                      <img
+                        src={offer.photos[0]}
+                        alt={offer.adresseBien}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-blue-50 to-slate-100 dark:from-slate-800 dark:to-slate-900" />
+                    )}
+                  </div>
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-lg group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors dark:text-white">
+                        {offer.adresseBien}
+                      </CardTitle>
+                      <div className="flex items-center space-x-1 text-blue-600 dark:text-blue-400">
+                        {getPropertyTypeIcon(offer.typeBien)}
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-4 text-sm text-slate-600 dark:text-slate-400">
+                      <div className="flex items-center space-x-1">
+                        <Square className="h-4 w-4" />
+                        <span>{offer.surface}m²</span>
+                      </div>
+                      {offer.nbChambresOffre && (
+                        <div className="flex items-center space-x-1">
+                          <Home className="h-4 w-4" />
+                          <span>{offer.nbChambresOffre} pièces</span>
+                        </div>
+                      )}
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <Banknote className="h-5 w-5 text-green-600 dark:text-green-400" />
+                        <span className="text-2xl font-bold text-slate-900 dark:text-white">
+                          {offer.prixPropose.toLocaleString()} €
+                        </span>
+                      </div>
+                    </div>
+
+                    {offer.descriptionBien && (
+                      <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-2">
+                        {offer.descriptionBien}
+                      </p>
+                    )}
+
+                    <div className="flex items-center justify-between pt-2 border-t dark:border-slate-800">
+                      <span className="text-xs text-slate-500 dark:text-slate-500">
+                        Ajouté le {new Date(offer.createdAt).toLocaleDateString('fr-FR')}
+                      </span>
+                      <Button variant="outline" size="sm" className="group-hover:bg-blue-50 dark:group-hover:bg-blue-900/50 group-hover:border-blue-200 dark:group-hover:border-blue-800 dark:border-slate-700 dark:text-slate-200">
+                        <Eye className="h-4 w-4 mr-2" />
+                        Voir les Détails
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            )}
+          </div>
+
+          <div className="text-center mt-12">
+            <Link href="/offers">
+              <Button size="lg" variant="outline" className="text-lg px-12 py-3 border-slate-300 text-slate-200">
+                Voir Toutes les Propriétés
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      
       {/* Features Section */}
       <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white dark:bg-slate-950">
         <div className="max-w-7xl mx-auto">
@@ -362,26 +515,58 @@ export default function LandingPage() {
               Performance de la Plateforme
             </h2>
             <p className="text-xl text-slate-300 max-w-2xl mx-auto">
-              Approuvée par les professionnels de l'immobilier pour une gestion efficace
+              Statistiques en temps réel de votre plateforme immobilière
             </p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             {[
-              { number: '250+', label: 'Biens Gérés', icon: Building2 },
-              { number: '150+', label: 'Clients Actifs', icon: Users },
-              { number: '98%', label: 'Satisfaction Client', icon: TrendingUp },
-              { number: '24/7', label: 'Disponibilité Système', icon: Key }
+              { 
+                number: statsLoading ? '...' : `${stats.totalOffers}+`, 
+                label: 'Biens Disponibles', 
+                icon: Building2,
+                description: 'Offres immobilières actives'
+              },
+              { 
+                number: statsLoading ? '...' : `${stats.totalDemands}+`, 
+                label: 'Demandes Clients', 
+                icon: Users,
+                description: 'Demandes en cours de traitement'
+              },
+              { 
+                number: statsLoading ? '...' : `${stats.averagePrice.toLocaleString()}€`, 
+                label: 'Prix Moyen', 
+                icon: TrendingUp,
+                description: `Prix moyen des biens (${stats.minPrice?.toLocaleString()}€ - ${stats.maxPrice?.toLocaleString()}€)`
+              },
+              { 
+                number: statsLoading ? '...' : `${Math.round(stats.totalSurface).toLocaleString()}m²`, 
+                label: 'Surface Totale', 
+                icon: Key,
+                description: 'Surface totale des biens disponibles'
+              }
             ].map((stat, index) => (
               <div key={index} className="text-center">
                 <div className="bg-white/10 backdrop-blur-sm p-4 rounded-lg mb-4 w-fit mx-auto">
                   <stat.icon className="h-8 w-8 text-blue-400" />
                 </div>
-                <div className="text-3xl font-bold text-white mb-2">{stat.number}</div>
-                <div className="text-slate-300">{stat.label}</div>
+                <div className="text-3xl font-bold text-white mb-2">
+                  {stat.number}
+                </div>
+                <div className="text-slate-300 mb-1">{stat.label}</div>
+                <div className="text-xs text-slate-400">{stat.description}</div>
               </div>
             ))}
           </div>
+          
+          {statsLoading && (
+            <div className="text-center mt-8">
+              <div className="inline-flex items-center space-x-2 text-slate-300">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-400"></div>
+                <span>Chargement des statistiques...</span>
+              </div>
+            </div>
+          )}
         </div>
       </section>
 

@@ -27,7 +27,7 @@ public class OffreService {
     private final OffrePhotoRepository offrePhotoRepository;
     
     // Directory to store uploaded images
-    private static final String UPLOAD_DIR = "../front/public/images/offers";
+    private static final String UPLOAD_DIR = "../front/public/offers";
 
     public String uploadImage(MultipartFile image) throws IOException {
         // Create upload directory if it doesn't exist
@@ -46,8 +46,8 @@ public class OffreService {
         Path filePath = uploadPath.resolve(filename);
         Files.copy(image.getInputStream(), filePath);
         
-        // Return the URL path (relative to public folder)
-        return "/images/offers/" + filename;
+        // Return the URL path for frontend access
+        return "http://localhost:3000/offers/" + filename;
     }
 
     public Page<OffreDto> findAllWithFilters(
@@ -93,8 +93,6 @@ public class OffreService {
 
         Offre savedOffre = offreRepository.save(offre);
 
-        // Temporarily disabled photo saving until database migration is applied
-        /*
         // Save photos to the separate table
         if (dto.getPhotos() != null && !dto.getPhotos().isEmpty()) {
             for (String photoUrl : dto.getPhotos()) {
@@ -107,7 +105,6 @@ public class OffreService {
                 offrePhotoRepository.save(photo);
             }
         }
-        */
 
         return OffreDto.fromEntity(savedOffre);
     }
@@ -146,13 +143,20 @@ public class OffreService {
                 throw new RuntimeException("Offer with ID " + id + " not found");
             }
             
-            // Temporarily disabled photo deletion until database migration is applied
-            /*
-            // Delete photos first
-            offrePhotoRepository.deleteByOffreId(id);
-            */
+            // Try to delete photos first as a safety measure
+            // The CASCADE constraint should handle this automatically, but we'll do it manually as a fallback
+            try {
+                List<OffrePhoto> photos = offrePhotoRepository.findByOffreId(id);
+                if (!photos.isEmpty()) {
+                    offrePhotoRepository.deleteByOffreId(id);
+                    System.out.println("Manually deleted " + photos.size() + " photos for offer ID: " + id);
+                }
+            } catch (Exception e) {
+                System.err.println("Warning: Could not manually delete photos for offer ID " + id + ": " + e.getMessage());
+                // Continue with offer deletion - CASCADE should handle it
+            }
             
-            // Then delete the offer
+            // Delete the offer (CASCADE should automatically delete related photos)
             offreRepository.deleteById(id);
             
             System.out.println("Successfully deleted offer with ID: " + id);
@@ -164,11 +168,6 @@ public class OffreService {
     }
 
     public Optional<OffreDto> addPhotos(Long id, List<MultipartFile> photos) {
-        // Temporarily disabled until database migration is applied
-        return offreRepository.findById(id)
-                .map(offre -> OffreDto.fromEntity(offre));
-        
-        /*
         return offreRepository.findById(id)
                 .map(offre -> {
                     // Add new photo URLs to the separate table
@@ -188,7 +187,6 @@ public class OffreService {
                     }
                     return OffreDto.fromEntity(offre);
                 });
-        */
     }
 
     public List<Offre> findAll() {

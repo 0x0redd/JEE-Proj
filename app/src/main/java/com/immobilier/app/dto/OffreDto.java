@@ -35,7 +35,7 @@ public class OffreDto {
 
     public static OffreDto fromEntity(Offre offre) {
         // Temporarily disable photo loading to prevent database errors
-        // while migrations are being applied
+        // while the migration is being applied
         List<String> photoUrls = List.of();
         
         // TODO: Re-enable this once the offre_photos table is properly created

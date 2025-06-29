@@ -16,6 +16,8 @@ import {
 } from './core/morphing-dialog';
 import { ScrollArea } from './website/scroll-area';
 
+import Image from 'next/image';
+
 interface PropertyOffer {
   id: string;
   propertyType: string;
@@ -66,7 +68,14 @@ interface OfferCardProps {
 
 export default function OfferCard({ offer }: OfferCardProps) {
   const defaultImage =
-    'https://images.unsplash.com/photo-1560518883-ce09059eeffa?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80';
+    '/offers/2638ff38-a04d-4683-9c7c-c598db3e5d51.jpg';
+
+  // Helper function to get the correct image URL
+  const getImageUrl = (photoUrl: string) => {
+    if (!photoUrl || photoUrl.trim() === '') return defaultImage;
+    if (photoUrl.startsWith('http')) return photoUrl;
+    return `/offers/${photoUrl}`;
+  };
 
   const prefersReducedMotion =
     typeof window !== 'undefined' &&
@@ -107,7 +116,7 @@ export default function OfferCard({ offer }: OfferCardProps) {
               </div>
             </div>
             <img
-              src={offer.photos?.[0] || defaultImage}
+              src={getImageUrl(offer.photos?.[0] || '')}
               alt={offer.address}
               className="w-full h-full object-cover"
             />
@@ -154,14 +163,10 @@ export default function OfferCard({ offer }: OfferCardProps) {
               <span className="text-xs text-slate-500 dark:text-slate-500">
                 Ajouté le {new Date(offer.createdAt).toLocaleDateString('fr-FR')}
               </span>
-              <Button
-                variant="outline"
-                size="sm"
-                className="group-hover:bg-blue-50 dark:group-hover:bg-blue-900/50 group-hover:border-blue-200 dark:group-hover:border-blue-800 dark:border-slate-700 dark:text-slate-200"
-              >
+              <div className="inline-flex items-center justify-center text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-3 rounded-md group-hover:bg-blue-50 dark:group-hover:bg-blue-900/50 group-hover:border-blue-200 dark:group-hover:border-blue-800 dark:border-slate-700 dark:text-slate-200">
                 <Eye className="h-4 w-4 mr-2" />
                 Voir les Détails
-              </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -177,8 +182,8 @@ export default function OfferCard({ offer }: OfferCardProps) {
           <ScrollArea className="h-[90vh]" type="scroll">
             <div className="relative p-6">
               <div className="flex justify-center py-6">
-                <MorphingDialogImage
-                  src={offer.photos?.[0] || defaultImage}
+                <img
+                  src={getImageUrl(offer.photos?.[0] || '')}
                   alt={offer.address}
                   className="h-auto w-full max-w-[400px] rounded-lg object-cover"
                 />
@@ -269,7 +274,7 @@ export default function OfferCard({ offer }: OfferCardProps) {
                       {offer.photos.slice(1, 5).map((photo, index) => (
                         <img
                           key={index}
-                          src={photo}
+                          src={getImageUrl(photo || '')}
                           alt={`${offer.address} - Photo ${index + 2}`}
                           className="w-full h-24 object-cover rounded-lg"
                         />

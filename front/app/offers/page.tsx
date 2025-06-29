@@ -134,7 +134,9 @@ export default function OffersPage() {
         ownerName: [item.nomProprietaire, item.prenomProprietaire].filter(Boolean).join(' '),
         ownerPhone: item.telephoneProprietaire ?? '',
         floor: item.etage ?? undefined,
-        photos: item.photos ?? [],
+        photos: item.photos ? item.photos.map((photo: string) => 
+          photo.startsWith('http') ? photo : `${photo}`
+        ) : [],
       }));
       
       setOffers(mappedOffers);

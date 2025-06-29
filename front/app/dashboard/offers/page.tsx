@@ -96,9 +96,17 @@ export default function OffersPage() {
       const data = await response.json();
       console.log('Fetched offers:', data);
       
-      setOffers(data);
-      setTotalOffers(data.length);
-      setFilteredOffers(data);
+      // Map photo URLs to include the correct base URL
+      const mappedData = data.map((offer: PropertyOffer) => ({
+        ...offer,
+        photos: offer.photos ? offer.photos.map((photo: string) => 
+          photo.startsWith('http') ? photo : `http://localhost:3000/offers/${photo}`
+        ) : []
+      }));
+      
+      setOffers(mappedData);
+      setTotalOffers(mappedData.length);
+      setFilteredOffers(mappedData);
     } catch (err) {
       console.error('Error loading offers:', err);
       setError(err instanceof Error ? err.message : 'Failed to load offers');
@@ -509,15 +517,32 @@ export default function OffersPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
           {currentOffers.map((offer) => (
             <Card key={offer.id} className="hover:shadow-lg transition-shadow dark:bg-slate-800 dark:border-slate-700">
+              {/* Image Section */}
+              <div className="h-48 relative overflow-hidden">
+                {offer.photos && offer.photos.length > 0 ? (
+                  <img
+                    src={offer.photos[0]}
+                    alt={offer.adresseBien}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-blue-50 to-slate-100 dark:from-slate-700 dark:to-slate-800 flex items-center justify-center">
+                    <Building2 className="h-12 w-12 text-slate-400 dark:text-slate-600" />
+                  </div>
+                )}
+                <div className="absolute top-2 right-2">
+                  <Badge className={getStatusColor(offer.statutOffre)}>
+                    {offer.statutOffre}
+                  </Badge>
+                </div>
+              </div>
+              
               <CardHeader className="pb-3">
                 <div className="flex justify-between items-start">
                   <div className="flex items-center space-x-2">
                     {getPropertyTypeIcon(offer.typeBien)}
                     <CardTitle className="text-lg dark:text-white">{formatPropertyType(offer.typeBien)}</CardTitle>
                   </div>
-                  <Badge className={getStatusColor(offer.statutOffre)}>
-                    {offer.statutOffre}
-                  </Badge>
                 </div>
                 <CardDescription className="text-sm dark:text-slate-400">
                   {offer.prenomProprietaire} {offer.nomProprietaire}

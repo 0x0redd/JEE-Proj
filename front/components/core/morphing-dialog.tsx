@@ -402,19 +402,26 @@ function MorphingDialogClose({
   }, [setIsOpen]);
 
   return (
-    <motion.button
+    <motion.div
       onClick={handleClose}
-      type='button'
+      role="button"
+      tabIndex={0}
       aria-label='Close dialog'
       key={`dialog-close-${uniqueId}`}
-      className={cn('absolute top-6 right-6', className)}
+      className={cn('absolute top-6 right-6 cursor-pointer', className)}
       initial='initial'
       animate='animate'
       exit='exit'
       variants={variants}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          handleClose();
+        }
+      }}
     >
       {children || <XIcon size={24} />}
-    </motion.button>
+    </motion.div>
   );
 }
 

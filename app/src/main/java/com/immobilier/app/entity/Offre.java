@@ -56,7 +56,7 @@ public class Offre {
     @Column(nullable = false)
     private StatutOffre statutOffre;
 
-    // Temporarily disabled to prevent database errors while migrations are applied
+    // Temporarily disabled to prevent database errors while migration is applied
     // @OneToMany(mappedBy = "offre", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     // private List<OffrePhoto> photos;
 
